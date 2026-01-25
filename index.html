@@ -12,6 +12,10 @@
         .hp-bar { width: 100%; background: #333; height: 15px; border: 1px solid #fff; margin-top: 5px; }
         .hp-fill { background: #00ff00; height: 100%; width: 100%; transition: 0.4s; }
         
+        /* نافذة التحكم بالخصم */
+        #control-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; border: 3px solid red; padding: 20px; z-index: 200; width: 80%; }
+        .control-btn { background: #4a0000; color: white; border: 1px solid gold; padding: 10px; margin: 5px; width: 100%; cursor: pointer; }
+
         .skills-sidebar { position: fixed; left: -250px; top: 0; width: 250px; height: 100%; background: #1a1a1a; border-right: 2px solid gold; transition: 0.5s; z-index: 100; padding: 10px; box-sizing: border-box; text-align: right; }
         .skills-sidebar.open { left: 0; }
         .toggle-btn { position: absolute; right: -40px; top: 50%; background: gold; color: black; border: none; padding: 10px; cursor: pointer; border-radius: 0 5px 5px 0; font-weight: bold; }
@@ -24,6 +28,12 @@
     </style>
 </head>
 <body>
+
+    <div id="control-modal">
+        <h3>اختر مهارة غيوتارو ليستخدمها ضد نفسه:</h3>
+        <button class="control-btn" onclick="executeControl(150, 'منجل الدم')">منجل الدم (150 ضرر)</button>
+        <button class="control-btn" onclick="executeControl(300, 'سم القمر')">سم القمر (300 ضرر)</button>
+    </div>
 
     <div id="sidebar" class="skills-sidebar">
         <button class="toggle-btn" onclick="toggleSidebar()">◀</button>
@@ -57,9 +67,8 @@
     <p id="log" style="margin-top: 20px; color: #00ff00; font-weight: bold; min-height: 40px; padding: 0 10px;"></p>
 
     <script>
-        let pHP = 1000, eHP = 1500;
+        let pHP = 1000, eHP = 1500, lastEnemyDmg = 0;
         let cooldowns = { "btn-1": 0, "btn-2": 0, "btn-3": 0, "btn-4": 0 };
-        let activeEffect = null; // يمكن أن يكون 'defense' أو 'control'
         let isPlayerTurn = true;
 
         function toggleSidebar() {
@@ -74,55 +83,46 @@
             if (type === 'attack') {
                 eHP -= dmg;
                 document.getElementById('log').innerText = `ديابلو استخدم ${name} وسبب ${dmg} ضرر!`;
+                finishTurn(btnId, cd);
             } else if (type === 'defense') {
-                activeEffect = 'defense';
-                document.getElementById('log').innerText = `ديابلو فعل حاجز الهاوية! سيختفي الضرر الدور القادم.`;
+                pHP += lastEnemyDmg; // استعادة الضرر الذي سببه الخصم في الدور السابق
+                if (pHP > 1000) pHP = 1000;
+                document.getElementById('log').innerText = `حاجز الهاوية! ديابلو استعاد ${lastEnemyDmg} HP من الضرر السابق.`;
+                finishTurn(btnId, cd);
             } else if (type === 'control') {
-                activeEffect = 'control';
-                document.getElementById('log').innerText = `ديابلو فعل العالم الوهمي! سيهاجم غيوتارو نفسه.`;
+                document.getElementById('control-modal').style.display = 'block';
+                // لا ننهي الدور هنا حتى يختار من القائمة
+                window.currentCD = {id: btnId, val: cd};
             }
+        }
 
+        function executeControl(dmg, skillName) {
+            eHP -= dmg;
+            document.getElementById('control-modal').style.display = 'none';
+            document.getElementById('log').innerText = `تحكمت بعقل غيوتارو! لقد أجبرته على ضرب نفسه بـ ${skillName} (ضرر: ${dmg})`;
+            finishTurn(window.currentCD.id, window.currentCD.val);
+        }
+
+        function finishTurn(btnId, cd) {
             if (eHP < 0) eHP = 0;
-            cooldowns[btnId] = cd + 1; // +1 لأن الخصم سيلعب دوره الآن
+            cooldowns[btnId] = cd + 1;
             isPlayerTurn = false;
             updateUI();
             updateButtons();
-
-            if (eHP <= 0) {
-                document.getElementById('log').innerText = "تم قطع رأس غيوتارو! انتصار ديابلو!";
-                return;
-            }
-
-            setTimeout(enemyTurn, 1500);
+            if (eHP > 0) setTimeout(enemyTurn, 1500);
+            else document.getElementById('log').innerText = "تم قطع رأس غيوتارو!";
         }
 
         function enemyTurn() {
-            if (eHP <= 0) return;
-            let enemyDmg = 150;
+            lastEnemyDmg = 150; // هجمة غيوتارو الثابتة
+            pHP -= lastEnemyDmg;
+            if (pHP < 0) pHP = 0;
 
-            if (activeEffect === 'defense') {
-                document.getElementById('log').innerText = `غيوتارو حاول الهجوم لكن حاجز الهاوية امتص الضرر!`;
-                activeEffect = null;
-            } else if (activeEffect === 'control') {
-                eHP -= enemyDmg;
-                if (eHP < 0) eHP = 0;
-                document.getElementById('log').innerText = `غيوتارو تحت تأثير العالم الوهمي! هاجم نفسه بـ ${enemyDmg} ضرر!`;
-                activeEffect = null;
-            } else {
-                pHP -= enemyDmg;
-                if (pHP < 0) pHP = 0;
-                document.getElementById('log').innerText = `غيوتارو هجم بـ منجل الدم وسبب ${enemyDmg} ضرر!`;
-            }
-
-            for (let id in cooldowns) {
-                if (cooldowns[id] > 0) cooldowns[id]--;
-            }
-
+            for (let id in cooldowns) if (cooldowns[id] > 0) cooldowns[id]--;
             isPlayerTurn = true;
+            document.getElementById('log').innerText = `غيوتارو هجم بـ منجل الدم وسبب ${lastEnemyDmg} ضرر! دورك الآن.`;
             updateUI();
             updateButtons();
-
-            if (pHP <= 0) document.getElementById('log').innerText = "لقد سقط ديابلو في المعركة...";
         }
 
         function updateUI() {
@@ -134,15 +134,9 @@
 
         function updateButtons() {
             document.querySelectorAll('.skill-button').forEach(btn => {
-                let id = btn.id;
-                let cd = cooldowns[id];
-                if (!isPlayerTurn || cd > 0) {
-                    btn.disabled = true;
-                    if (cd > 0) btn.querySelector('.cooldown-text').innerText = `انتظر: ${cd}`;
-                } else {
-                    btn.disabled = false;
-                    btn.querySelector('.cooldown-text').innerText = "جاهزة";
-                }
+                let cd = cooldowns[btn.id];
+                btn.disabled = !isPlayerTurn || cd > 0;
+                btn.querySelector('.cooldown-text').innerText = cd > 0 ? `انتظر: ${cd}` : "جاهزة";
             });
         }
     </script>
