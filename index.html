@@ -12,16 +12,15 @@
         .hp-bar { width: 100%; background: #333; height: 15px; border: 1px solid #fff; margin-top: 5px; }
         .hp-fill { background: #00ff00; height: 100%; width: 100%; transition: 0.4s; }
         
-        /* قائمة المهارات الجانبية */
         .skills-sidebar { position: fixed; left: -250px; top: 0; width: 250px; height: 100%; background: #1a1a1a; border-right: 2px solid gold; transition: 0.5s; z-index: 100; padding: 10px; box-sizing: border-box; text-align: right; }
         .skills-sidebar.open { left: 0; }
         .toggle-btn { position: absolute; right: -40px; top: 50%; background: gold; color: black; border: none; padding: 10px; cursor: pointer; border-radius: 0 5px 5px 0; font-weight: bold; }
         .skills-img { width: 100%; border: 1px solid #444; margin-top: 10px; }
 
-        /* أزرار المهارات في المعركة */
         .controls { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
         .skill-button { background: #8b0000; color: white; border: 1px solid gold; padding: 10px 15px; cursor: pointer; font-size: 14px; border-radius: 5px; }
         .skill-button:active { background: gold; color: black; }
+        .skill-button:disabled { background: #444; color: #888; border-color: #666; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -29,8 +28,7 @@
     <div id="sidebar" class="skills-sidebar">
         <button class="toggle-btn" onclick="toggleSidebar()">◀</button>
         <h3 style="margin-top: 0;">دليل مهارات ديابلو</h3>
-        <img src="20260123_183133.jpg" class="skills-img" alt="تحميل مهارات ديابلو...">
-        <p style="font-size: 12px; color: #ccc; margin-top: 10px;">اقرأ تفاصيل المهارة ثم اخترها من الأزرار بالأسفل</p>
+        <img src="20260123_183133.jpg" class="skills-img" alt="مهارات ديابلو">
     </div>
 
     <h1>Legends System: مهمة غيوتارو</h1>
@@ -42,7 +40,7 @@
                 <div style="margin-top:5px;">ديابلو</div>
             </div>
             <div class="hp-bar"><div id="p-hp" class="hp-fill"></div></div>
-            <p>1000 / 1000 HP</p>
+            <p id="p-hp-text">1000 / 1000 HP</p>
         </div>
 
         <h2 style="color: white;">VS</h2>
@@ -53,30 +51,58 @@
                 <div style="margin-top:5px;">غيوتارو</div>
             </div>
             <div class="hp-bar"><div id="e-hp" class="hp-fill" style="background: red;"></div></div>
-            <p>1500 / 1500 HP</p>
+            <p id="e-hp-text">1500 / 1500 HP</p>
         </div>
     </div>
 
     <div class="controls">
-        <button class="skill-button" onclick="useSkill('نهاية العالم')">نهاية العالم</button>
-        <button class="skill-button" onclick="useSkill('حاجز الهاوية')">حاجز الهاوية</button>
-        <button class="skill-button" onclick="useSkill('العالم الوهمي')">العالم الوهمي</button>
-        <button class="skill-button" onclick="useSkill('الشق الاسود')">الشق الاسود</button>
+        <button class="skill-button" onclick="useSkill('نهاية العالم', 500)">نهاية العالم</button>
+        <button class="skill-button" onclick="useSkill('حاجز الهاوية', 0)">حاجز الهاوية</button>
+        <button class="skill-button" onclick="useSkill('العالم الوهمي', 0)">العالم الوهمي</button>
+        <button class="skill-button" onclick="useSkill('الشق الاسود', 700)">الشق الاسود</button>
     </div>
 
-    <p id="log" style="margin-top: 20px; color: #00ff00; font-weight: bold;">بانتظار حركتك يا ديابلو...</p>
+    <p id="log" style="margin-top: 20px; color: #00ff00; font-weight: bold; min-height: 24px;">بانتظار حركتك يا ديابلو...</p>
 
     <script>
+        let playerHP = 1000;
+        let enemyHP = 1500;
+
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('open');
-            const btn = document.querySelector('.toggle-btn');
-            // تغيير اتجاه السهم عند الفتح والإغلاق
-            btn.innerText = sidebar.classList.contains('open') ? "▶" : "◀";
+            document.querySelector('.toggle-btn').innerText = sidebar.classList.contains('open') ? "▶" : "◀";
         }
 
-        function useSkill(skillName) {
-            document.getElementById('log').innerText = "ديابلو قرر استخدام: " + skillName;
+        function useSkill(name, damage) {
+            if (enemyHP <= 0) return;
+
+            // إنقاص دم الخصم
+            enemyHP -= damage;
+            if (enemyHP < 0) enemyHP = 0;
+
+            // تحديث الواجهة
+            updateUI();
+            
+            document.getElementById('log').innerText = `ديابلو استخدم ${name} وسبب ${damage} ضرر!`;
+
+            if (enemyHP === 0) {
+                document.getElementById('log').innerText = "تمت هزيمة غيوتارو بنجاح!";
+                document.getElementById('log').style.color = "gold";
+                disableButtons();
+            }
+        }
+
+        function updateUI() {
+            // تحديث شريط دم الخصم
+            let enemyPercent = (enemyHP / 1500) * 100;
+            document.getElementById('e-hp').style.width = enemyPercent + "%";
+            document.getElementById('e-hp-text').innerText = `${enemyHP} / 1500 HP`;
+        }
+
+        function disableButtons() {
+            let buttons = document.querySelectorAll('.skill-button');
+            buttons.forEach(btn => btn.disabled = true);
         }
     </script>
 
