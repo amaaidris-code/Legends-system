@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legends System - Diablo</title>
+    <title>Legends System - Diablo vs Gyutaro</title>
     <style>
         body { background: #000; color: gold; font-family: sans-serif; text-align: center; direction: rtl; margin: 0; overflow-x: hidden; }
         .battle-area { display: flex; justify-content: space-around; align-items: center; padding: 10px; margin-top: 30px; }
@@ -13,8 +13,8 @@
         .hp-fill { background: #00ff00; height: 100%; width: 100%; transition: 0.4s; }
         
         /* نافذة التحكم بالخصم */
-        #control-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; border: 3px solid red; padding: 20px; z-index: 200; width: 80%; }
-        .control-btn { background: #4a0000; color: white; border: 1px solid gold; padding: 10px; margin: 5px; width: 100%; cursor: pointer; }
+        #control-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; border: 3px solid red; padding: 20px; z-index: 200; width: 85%; border-radius: 10px; box-shadow: 0 0 20px red; }
+        .control-btn { background: #4a0000; color: white; border: 1px solid gold; padding: 12px; margin: 8px 0; width: 100%; cursor: pointer; font-weight: bold; }
 
         .skills-sidebar { position: fixed; left: -250px; top: 0; width: 250px; height: 100%; background: #1a1a1a; border-right: 2px solid gold; transition: 0.5s; z-index: 100; padding: 10px; box-sizing: border-box; text-align: right; }
         .skills-sidebar.open { left: 0; }
@@ -30,9 +30,11 @@
 <body>
 
     <div id="control-modal">
-        <h3>اختر مهارة غيوتارو ليستخدمها ضد نفسه:</h3>
-        <button class="control-btn" onclick="executeControl(150, 'منجل الدم')">منجل الدم (150 ضرر)</button>
-        <button class="control-btn" onclick="executeControl(300, 'سم القمر')">سم القمر (300 ضرر)</button>
+        <h3 style="color: white;">سيطر ديابلو على عقل غيوتارو!</h3>
+        <p style="color: gold;">اختر المهارة التي سينفذها الخصم ضد نفسه:</p>
+        <button class="control-btn" onclick="executeControl('attack', 150, 'منجل الدم')">منجل الدم (150 ضرر)</button>
+        <button class="control-btn" onclick="executeControl('attack', 300, 'سم القمر')">سم القمر (300 ضرر)</button>
+        <button class="control-btn" onclick="executeControl('heal', 200, 'تجدد الشيطان')">إجبار على معالجة ديابلو (200 HP)</button>
     </div>
 
     <div id="sidebar" class="skills-sidebar">
@@ -85,21 +87,26 @@
                 document.getElementById('log').innerText = `ديابلو استخدم ${name} وسبب ${dmg} ضرر!`;
                 finishTurn(btnId, cd);
             } else if (type === 'defense') {
-                pHP += lastEnemyDmg; // استعادة الضرر الذي سببه الخصم في الدور السابق
+                pHP += lastEnemyDmg;
                 if (pHP > 1000) pHP = 1000;
                 document.getElementById('log').innerText = `حاجز الهاوية! ديابلو استعاد ${lastEnemyDmg} HP من الضرر السابق.`;
                 finishTurn(btnId, cd);
             } else if (type === 'control') {
                 document.getElementById('control-modal').style.display = 'block';
-                // لا ننهي الدور هنا حتى يختار من القائمة
                 window.currentCD = {id: btnId, val: cd};
             }
         }
 
-        function executeControl(dmg, skillName) {
-            eHP -= dmg;
+        function executeControl(type, value, skillName) {
             document.getElementById('control-modal').style.display = 'none';
-            document.getElementById('log').innerText = `تحكمت بعقل غيوتارو! لقد أجبرته على ضرب نفسه بـ ${skillName} (ضرر: ${dmg})`;
+            if (type === 'attack') {
+                eHP -= value;
+                document.getElementById('log').innerText = `تحت تأثير العالم الوهمي، غيوتارو ضرب نفسه بـ ${skillName} وتلقى ${value} ضرر!`;
+            } else if (type === 'heal') {
+                pHP += value;
+                if (pHP > 1000) pHP = 1000;
+                document.getElementById('log').innerText = `أجبرت غيوتارو على استخدام ${skillName} لعلاجك! استعدت ${value} HP.`;
+            }
             finishTurn(window.currentCD.id, window.currentCD.val);
         }
 
@@ -109,18 +116,27 @@
             isPlayerTurn = false;
             updateUI();
             updateButtons();
-            if (eHP > 0) setTimeout(enemyTurn, 1500);
-            else document.getElementById('log').innerText = "تم قطع رأس غيوتارو!";
+            if (eHP > 0) setTimeout(enemyAI, 1500);
+            else document.getElementById('log').innerText = "تم سحق غيوتارو تماماً!";
         }
 
-        function enemyTurn() {
-            lastEnemyDmg = 150; // هجمة غيوتارو الثابتة
+        function enemyAI() {
+            if (eHP <= 0) return;
+            
+            // ذكاء غيوتارو: يختار مهارة عشوائية
+            const moves = [
+                {n: 'منجل الدم', d: 150},
+                {n: 'سم القمر', d: 300}
+            ];
+            const move = moves[Math.floor(Math.random() * moves.length)];
+            
+            lastEnemyDmg = move.d;
             pHP -= lastEnemyDmg;
             if (pHP < 0) pHP = 0;
 
             for (let id in cooldowns) if (cooldowns[id] > 0) cooldowns[id]--;
             isPlayerTurn = true;
-            document.getElementById('log').innerText = `غيوتارو هجم بـ منجل الدم وسبب ${lastEnemyDmg} ضرر! دورك الآن.`;
+            document.getElementById('log').innerText = `غيوتارو استخدم ${move.n} وسبب ${lastEnemyDmg} ضرر! دور ديابلو.`;
             updateUI();
             updateButtons();
         }
@@ -142,3 +158,4 @@
     </script>
 </body>
 </html>
+
