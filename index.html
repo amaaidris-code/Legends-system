@@ -1,1 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legends System - Battle</title>
+    <style>
+        body { background: #000; color: gold; font-family: sans-serif; text-align: center; direction: rtl; }
+        .battle-area { display: flex; justify-content: space-around; align-items: center; padding: 20px; margin-top: 50px; }
+        .card { border: 2px solid gold; padding: 10px; background: #111; width: 150px; }
+        .card img { width: 100%; height: auto; border-radius: 10px; }
+        .hp-bar { width: 100%; background: #333; height: 20px; border: 1px solid #fff; margin-top: 10px; }
+        .hp-fill { background: #00ff00; height: 100%; width: 100%; transition: 0.4s; }
+        .info { margin-top: 10px; font-weight: bold; }
+        h1 { text-shadow: 2px 2px red; }
+    </style>
+</head>
+<body>
+
+    <h1>Legends System: مهمة غيوتارو</h1>
+
+    <div class="battle-area">
+        <div id="player">
+            <div class="card">
+                <img src="hero.jpg" alt="البطل">
+                <div class="info">البطل (أنت)</div>
+            </div>
+            <div class="hp-bar"><div id="p-hp" class="hp-fill"></div></div>
+            <p>1000 / 1000 HP</p>
+        </div>
+
+        <h2 style="color: white;">VS</h2>
+
+        <div id="enemy">
+            <div class="card">
+                <img src="gyutaro.jpg" alt="غيوتارو">
+                <div class="info">غيوتارو</div>
+            </div>
+            <div class="hp-bar"><div id="e-hp" class="hp-fill" style="background: red;"></div></div>
+            <p>1500 / 1500 HP</p>
+        </div>
+    </div>
+
+    <div id="game-status" style="margin-top: 30px; font-size: 1.2em;">
+        انتظر الأوامر القادمة للبدء...
+    </div>
+
+</body>
+</html>
 
