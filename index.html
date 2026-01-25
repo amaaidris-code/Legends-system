@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legends System - Diablo vs Gyutaro</title>
+    <title>Legends System - Diablo</title>
     <style>
         body { background: #000; color: gold; font-family: sans-serif; text-align: center; direction: rtl; margin: 0; overflow-x: hidden; }
         .battle-area { display: flex; justify-content: space-around; align-items: center; padding: 10px; margin-top: 30px; }
         .card { border: 2px solid gold; padding: 5px; background: #111; width: 130px; }
-        .card img { width: 100%; height: auto; border-radius: 5px; background: #222; }
+        .card img { width: 100%; height: auto; border-radius: 5px; }
         .hp-bar { width: 100%; background: #333; height: 15px; border: 1px solid #fff; margin-top: 5px; }
         .hp-fill { background: #00ff00; height: 100%; width: 100%; transition: 0.4s; }
         
@@ -18,9 +18,9 @@
         .skills-img { width: 100%; border: 1px solid #444; margin-top: 10px; }
 
         .controls { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-        .skill-button { background: #8b0000; color: white; border: 1px solid gold; padding: 10px 15px; cursor: pointer; font-size: 14px; border-radius: 5px; position: relative; }
+        .skill-button { background: #8b0000; color: white; border: 1px solid gold; padding: 10px 15px; cursor: pointer; font-size: 14px; border-radius: 5px; min-width: 120px; }
         .skill-button:disabled { background: #333; color: #777; border-color: #555; cursor: not-allowed; }
-        .cooldown-text { font-size: 10px; color: yellow; display: block; }
+        .cooldown-text { font-size: 10px; color: yellow; display: block; margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -39,9 +39,7 @@
             <div class="hp-bar"><div id="p-hp" class="hp-fill"></div></div>
             <p id="p-hp-text">1000 / 1000 HP</p>
         </div>
-
         <h2 style="color: white;">VS</h2>
-
         <div id="enemy">
             <div class="card"><img src="gyutaro.jpg"><div>غيوتارو</div></div>
             <div class="hp-bar"><div id="e-hp" class="hp-fill" style="background: red;"></div></div>
@@ -50,16 +48,18 @@
     </div>
 
     <div class="controls">
-        <button class="skill-button" id="btn-1" onclick="useSkill('نهاية العالم', 500, 3, 'btn-1')">نهاية العالم <span class="cooldown-text"></span></button>
-        <button class="skill-button" id="btn-2" onclick="useSkill('الشق الاسود', 700, 4, 'btn-2')">الشق الاسود <span class="cooldown-text"></span></button>
-        <button class="skill-button" id="btn-3" onclick="useSkill('ضربة عادية', 100, 0, 'btn-3')">هجوم عادي <span class="cooldown-text">دائم</span></button>
+        <button class="skill-button" id="btn-1" onclick="useSkill('نهاية العالم', 500, 2, 'attack', 'btn-1')">نهاية العالم <span class="cooldown-text"></span></button>
+        <button class="skill-button" id="btn-2" onclick="useSkill('حاجز الهاوية', 0, 2, 'defense', 'btn-2')">حاجز الهاوية <span class="cooldown-text"></span></button>
+        <button class="skill-button" id="btn-3" onclick="useSkill('العالم الوهمي', 0, 2, 'control', 'btn-3')">العالم الوهمي <span class="cooldown-text"></span></button>
+        <button class="skill-button" id="btn-4" onclick="useSkill('الشق الاسود', 700, 2, 'attack', 'btn-4')">الشق الاسود <span class="cooldown-text"></span></button>
     </div>
 
-    <p id="log" style="margin-top: 20px; color: #00ff00; font-weight: bold; padding: 0 10px;">بانتظار حركتك يا ديابلو...</p>
+    <p id="log" style="margin-top: 20px; color: #00ff00; font-weight: bold; min-height: 40px; padding: 0 10px;"></p>
 
     <script>
         let pHP = 1000, eHP = 1500;
-        let cooldowns = { "btn-1": 0, "btn-2": 0, "btn-3": 0 };
+        let cooldowns = { "btn-1": 0, "btn-2": 0, "btn-3": 0, "btn-4": 0 };
+        let activeEffect = null; // يمكن أن يكون 'defense' أو 'control'
         let isPlayerTurn = true;
 
         function toggleSidebar() {
@@ -68,36 +68,52 @@
             document.querySelector('.toggle-btn').innerText = sb.classList.contains('open') ? "▶" : "◀";
         }
 
-        function useSkill(name, dmg, cd, btnId) {
+        function useSkill(name, dmg, cd, type, btnId) {
             if (!isPlayerTurn || cooldowns[btnId] > 0 || eHP <= 0) return;
 
-            // تنفيذ هجوم اللاعب
-            eHP -= dmg;
+            if (type === 'attack') {
+                eHP -= dmg;
+                document.getElementById('log').innerText = `ديابلو استخدم ${name} وسبب ${dmg} ضرر!`;
+            } else if (type === 'defense') {
+                activeEffect = 'defense';
+                document.getElementById('log').innerText = `ديابلو فعل حاجز الهاوية! سيختفي الضرر الدور القادم.`;
+            } else if (type === 'control') {
+                activeEffect = 'control';
+                document.getElementById('log').innerText = `ديابلو فعل العالم الوهمي! سيهاجم غيوتارو نفسه.`;
+            }
+
             if (eHP < 0) eHP = 0;
-            cooldowns[btnId] = cd;
+            cooldowns[btnId] = cd + 1; // +1 لأن الخصم سيلعب دوره الآن
             isPlayerTurn = false;
-            
             updateUI();
-            document.getElementById('log').innerText = `ديابلو استخدم ${name} وسبب ${dmg} ضرر!`;
             updateButtons();
 
             if (eHP <= 0) {
-                document.getElementById('log').innerText = "تم قطع رأس غيوتارو! انتصار ساحق لديابلو!";
+                document.getElementById('log').innerText = "تم قطع رأس غيوتارو! انتصار ديابلو!";
                 return;
             }
 
-            // هجوم الخصم (بعد 1.5 ثانية)
             setTimeout(enemyTurn, 1500);
         }
 
         function enemyTurn() {
             if (eHP <= 0) return;
-            
-            let enemyDmg = 120; // ضرر غيوتارو
-            pHP -= enemyDmg;
-            if (pHP < 0) pHP = 0;
+            let enemyDmg = 150;
 
-            // تقليل التهدئة للأدوار القادمة
+            if (activeEffect === 'defense') {
+                document.getElementById('log').innerText = `غيوتارو حاول الهجوم لكن حاجز الهاوية امتص الضرر!`;
+                activeEffect = null;
+            } else if (activeEffect === 'control') {
+                eHP -= enemyDmg;
+                if (eHP < 0) eHP = 0;
+                document.getElementById('log').innerText = `غيوتارو تحت تأثير العالم الوهمي! هاجم نفسه بـ ${enemyDmg} ضرر!`;
+                activeEffect = null;
+            } else {
+                pHP -= enemyDmg;
+                if (pHP < 0) pHP = 0;
+                document.getElementById('log').innerText = `غيوتارو هجم بـ منجل الدم وسبب ${enemyDmg} ضرر!`;
+            }
+
             for (let id in cooldowns) {
                 if (cooldowns[id] > 0) cooldowns[id]--;
             }
@@ -105,13 +121,8 @@
             isPlayerTurn = true;
             updateUI();
             updateButtons();
-            document.getElementById('log').innerText = `غيوتارو هجم بـ "منجل الدم" وسبب ${enemyDmg} ضرر! دورك الآن.`;
 
-            if (pHP <= 0) {
-                document.getElementById('log').innerText = "لقد هُزم ديابلو... حاول مرة أخرى!";
-                isPlayerTurn = false;
-                updateButtons();
-            }
+            if (pHP <= 0) document.getElementById('log').innerText = "لقد سقط ديابلو في المعركة...";
         }
 
         function updateUI() {
@@ -127,14 +138,13 @@
                 let cd = cooldowns[id];
                 if (!isPlayerTurn || cd > 0) {
                     btn.disabled = true;
-                    if (cd > 0) btn.querySelector('.cooldown-text').innerText = `انتظر: ${cd} جولة`;
+                    if (cd > 0) btn.querySelector('.cooldown-text').innerText = `انتظر: ${cd}`;
                 } else {
                     btn.disabled = false;
-                    btn.querySelector('.cooldown-text').innerText = "";
+                    btn.querySelector('.cooldown-text').innerText = "جاهزة";
                 }
             });
         }
     </script>
 </body>
 </html>
-
