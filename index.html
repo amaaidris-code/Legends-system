@@ -8,7 +8,7 @@
         body { background: #000; color: gold; font-family: sans-serif; text-align: center; direction: rtl; margin: 0; overflow-x: hidden; }
         .battle-area { display: flex; justify-content: space-around; align-items: center; padding: 10px; margin-top: 30px; }
         .card { border: 2px solid gold; padding: 5px; background: #111; width: 130px; }
-        .card img { width: 100%; height: auto; border-radius: 5px; min-height: 50px; background: #222; }
+        .card img { width: 100%; height: auto; border-radius: 5px; background: #222; }
         .hp-bar { width: 100%; background: #333; height: 15px; border: 1px solid #fff; margin-top: 5px; }
         .hp-fill { background: #00ff00; height: 100%; width: 100%; transition: 0.4s; }
         
@@ -18,9 +18,9 @@
         .skills-img { width: 100%; border: 1px solid #444; margin-top: 10px; }
 
         .controls { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-        .skill-button { background: #8b0000; color: white; border: 1px solid gold; padding: 10px 15px; cursor: pointer; font-size: 14px; border-radius: 5px; }
-        .skill-button:active { background: gold; color: black; }
-        .skill-button:disabled { background: #444; color: #888; border-color: #666; cursor: not-allowed; }
+        .skill-button { background: #8b0000; color: white; border: 1px solid gold; padding: 10px 15px; cursor: pointer; font-size: 14px; border-radius: 5px; position: relative; }
+        .skill-button:disabled { background: #333; color: #777; border-color: #555; cursor: not-allowed; }
+        .cooldown-text { font-size: 10px; color: yellow; display: block; }
     </style>
 </head>
 <body>
@@ -28,17 +28,14 @@
     <div id="sidebar" class="skills-sidebar">
         <button class="toggle-btn" onclick="toggleSidebar()">◀</button>
         <h3 style="margin-top: 0;">دليل مهارات ديابلو</h3>
-        <img src="20260123_183133.jpg" class="skills-img" alt="مهارات ديابلو">
+        <img src="20260123_183133.jpg" class="skills-img">
     </div>
 
     <h1>Legends System: مهمة غيوتارو</h1>
 
     <div class="battle-area">
         <div id="player">
-            <div class="card">
-                <img src="20260123_183110.jpg" alt="ديابلو">
-                <div style="margin-top:5px;">ديابلو</div>
-            </div>
+            <div class="card"><img src="20260123_183110.jpg"><div>ديابلو</div></div>
             <div class="hp-bar"><div id="p-hp" class="hp-fill"></div></div>
             <p id="p-hp-text">1000 / 1000 HP</p>
         </div>
@@ -46,65 +43,98 @@
         <h2 style="color: white;">VS</h2>
 
         <div id="enemy">
-            <div class="card">
-                <img src="gyutaro.jpg" alt="غيوتارو">
-                <div style="margin-top:5px;">غيوتارو</div>
-            </div>
+            <div class="card"><img src="gyutaro.jpg"><div>غيوتارو</div></div>
             <div class="hp-bar"><div id="e-hp" class="hp-fill" style="background: red;"></div></div>
-            <p id="e-hp-text">1500 / 1500 HP</p>
+            <p id="e-text">1500 / 1500 HP</p>
         </div>
     </div>
 
     <div class="controls">
-        <button class="skill-button" onclick="useSkill('نهاية العالم', 500)">نهاية العالم</button>
-        <button class="skill-button" onclick="useSkill('حاجز الهاوية', 0)">حاجز الهاوية</button>
-        <button class="skill-button" onclick="useSkill('العالم الوهمي', 0)">العالم الوهمي</button>
-        <button class="skill-button" onclick="useSkill('الشق الاسود', 700)">الشق الاسود</button>
+        <button class="skill-button" id="btn-1" onclick="useSkill('نهاية العالم', 500, 3, 'btn-1')">نهاية العالم <span class="cooldown-text"></span></button>
+        <button class="skill-button" id="btn-2" onclick="useSkill('الشق الاسود', 700, 4, 'btn-2')">الشق الاسود <span class="cooldown-text"></span></button>
+        <button class="skill-button" id="btn-3" onclick="useSkill('ضربة عادية', 100, 0, 'btn-3')">هجوم عادي <span class="cooldown-text">دائم</span></button>
     </div>
 
-    <p id="log" style="margin-top: 20px; color: #00ff00; font-weight: bold; min-height: 24px;">بانتظار حركتك يا ديابلو...</p>
+    <p id="log" style="margin-top: 20px; color: #00ff00; font-weight: bold; padding: 0 10px;">بانتظار حركتك يا ديابلو...</p>
 
     <script>
-        let playerHP = 1000;
-        let enemyHP = 1500;
+        let pHP = 1000, eHP = 1500;
+        let cooldowns = { "btn-1": 0, "btn-2": 0, "btn-3": 0 };
+        let isPlayerTurn = true;
 
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('open');
-            document.querySelector('.toggle-btn').innerText = sidebar.classList.contains('open') ? "▶" : "◀";
+            const sb = document.getElementById('sidebar');
+            sb.classList.toggle('open');
+            document.querySelector('.toggle-btn').innerText = sb.classList.contains('open') ? "▶" : "◀";
         }
 
-        function useSkill(name, damage) {
-            if (enemyHP <= 0) return;
+        function useSkill(name, dmg, cd, btnId) {
+            if (!isPlayerTurn || cooldowns[btnId] > 0 || eHP <= 0) return;
 
-            // إنقاص دم الخصم
-            enemyHP -= damage;
-            if (enemyHP < 0) enemyHP = 0;
-
-            // تحديث الواجهة
-            updateUI();
+            // تنفيذ هجوم اللاعب
+            eHP -= dmg;
+            if (eHP < 0) eHP = 0;
+            cooldowns[btnId] = cd;
+            isPlayerTurn = false;
             
-            document.getElementById('log').innerText = `ديابلو استخدم ${name} وسبب ${damage} ضرر!`;
+            updateUI();
+            document.getElementById('log').innerText = `ديابلو استخدم ${name} وسبب ${dmg} ضرر!`;
+            updateButtons();
 
-            if (enemyHP === 0) {
-                document.getElementById('log').innerText = "تمت هزيمة غيوتارو بنجاح!";
-                document.getElementById('log').style.color = "gold";
-                disableButtons();
+            if (eHP <= 0) {
+                document.getElementById('log').innerText = "تم قطع رأس غيوتارو! انتصار ساحق لديابلو!";
+                return;
+            }
+
+            // هجوم الخصم (بعد 1.5 ثانية)
+            setTimeout(enemyTurn, 1500);
+        }
+
+        function enemyTurn() {
+            if (eHP <= 0) return;
+            
+            let enemyDmg = 120; // ضرر غيوتارو
+            pHP -= enemyDmg;
+            if (pHP < 0) pHP = 0;
+
+            // تقليل التهدئة للأدوار القادمة
+            for (let id in cooldowns) {
+                if (cooldowns[id] > 0) cooldowns[id]--;
+            }
+
+            isPlayerTurn = true;
+            updateUI();
+            updateButtons();
+            document.getElementById('log').innerText = `غيوتارو هجم بـ "منجل الدم" وسبب ${enemyDmg} ضرر! دورك الآن.`;
+
+            if (pHP <= 0) {
+                document.getElementById('log').innerText = "لقد هُزم ديابلو... حاول مرة أخرى!";
+                isPlayerTurn = false;
+                updateButtons();
             }
         }
 
         function updateUI() {
-            // تحديث شريط دم الخصم
-            let enemyPercent = (enemyHP / 1500) * 100;
-            document.getElementById('e-hp').style.width = enemyPercent + "%";
-            document.getElementById('e-hp-text').innerText = `${enemyHP} / 1500 HP`;
+            document.getElementById('e-hp').style.width = (eHP / 1500 * 100) + "%";
+            document.getElementById('p-hp').style.width = (pHP / 1000 * 100) + "%";
+            document.getElementById('e-text').innerText = `${eHP} / 1500 HP`;
+            document.getElementById('p-hp-text').innerText = `${pHP} / 1000 HP`;
         }
 
-        function disableButtons() {
-            let buttons = document.querySelectorAll('.skill-button');
-            buttons.forEach(btn => btn.disabled = true);
+        function updateButtons() {
+            document.querySelectorAll('.skill-button').forEach(btn => {
+                let id = btn.id;
+                let cd = cooldowns[id];
+                if (!isPlayerTurn || cd > 0) {
+                    btn.disabled = true;
+                    if (cd > 0) btn.querySelector('.cooldown-text').innerText = `انتظر: ${cd} جولة`;
+                } else {
+                    btn.disabled = false;
+                    btn.querySelector('.cooldown-text').innerText = "";
+                }
+            });
         }
     </script>
-
 </body>
 </html>
+
