@@ -3,27 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legends System - Battle</title>
+    <title>Legends System - Diablo vs Gyutaro</title>
     <style>
-        body { background: #000; color: gold; font-family: sans-serif; text-align: center; direction: rtl; }
-        .battle-area { display: flex; justify-content: space-around; align-items: center; padding: 20px; margin-top: 50px; }
-        .card { border: 2px solid gold; padding: 10px; background: #111; width: 150px; }
-        .card img { width: 100%; height: auto; border-radius: 10px; }
-        .hp-bar { width: 100%; background: #333; height: 20px; border: 1px solid #fff; margin-top: 10px; }
+        body { background: #000; color: gold; font-family: sans-serif; text-align: center; direction: rtl; margin: 0; overflow-x: hidden; }
+        .battle-area { display: flex; justify-content: space-around; align-items: center; padding: 10px; margin-top: 30px; }
+        .card { border: 2px solid gold; padding: 5px; background: #111; width: 130px; }
+        .card img { width: 100%; height: auto; border-radius: 5px; }
+        .hp-bar { width: 100%; background: #333; height: 15px; border: 1px solid #fff; margin-top: 5px; }
         .hp-fill { background: #00ff00; height: 100%; width: 100%; transition: 0.4s; }
-        .info { margin-top: 10px; font-weight: bold; }
-        h1 { text-shadow: 2px 2px red; }
+        
+        /* قائمة المهارات الجانبية */
+        .skills-sidebar { position: fixed; right: -250px; top: 0; width: 250px; height: 100%; background: #1a1a1a; border-left: 2px solid gold; transition: 0.5s; z-index: 100; padding: 10px; box-sizing: border-box; }
+        .skills-sidebar.open { right: 0; }
+        .toggle-btn { position: absolute; left: -40px; top: 50%; background: gold; color: black; border: none; padding: 10px; cursor: pointer; border-radius: 5px 0 0 5px; font-weight: bold; }
+        .skills-img { width: 100%; border: 1px solid #444; margin-bottom: 10px; }
+
+        /* أزرار المهارات في المعركة */
+        .controls { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .skill-button { background: #8b0000; color: white; border: 1px solid gold; padding: 10px 15px; cursor: pointer; font-size: 14px; }
+        .skill-button:active { background: gold; color: black; }
     </style>
 </head>
 <body>
+
+    <div id="sidebar" class="skills-sidebar">
+        <button class="toggle-btn" onclick="toggleSidebar()">◀</button>
+        <h3>دليل مهارات ديابلو</h3>
+        <img src="Diablo skill 1.png" class="skills-img" alt="مهارات ديابلو">
+        <p style="font-size: 12px; color: #ccc;">اقرأ تفاصيل المهارة ثم اخترها من الأسفل</p>
+    </div>
 
     <h1>Legends System: مهمة غيوتارو</h1>
 
     <div class="battle-area">
         <div id="player">
             <div class="card">
-                <img src="hero.jpg" alt="البطل">
-                <div class="info">البطل (أنت)</div>
+                <img src="Diablo profile.png" alt="ديابلو">
+                <div style="margin-top:5px;">ديابلو</div>
             </div>
             <div class="hp-bar"><div id="p-hp" class="hp-fill"></div></div>
             <p>1000 / 1000 HP</p>
@@ -34,17 +50,35 @@
         <div id="enemy">
             <div class="card">
                 <img src="gyutaro.jpg" alt="غيوتارو">
-                <div class="info">غيوتارو</div>
+                <div style="margin-top:5px;">غيوتارو</div>
             </div>
             <div class="hp-bar"><div id="e-hp" class="hp-fill" style="background: red;"></div></div>
             <p>1500 / 1500 HP</p>
         </div>
     </div>
 
-    <div id="game-status" style="margin-top: 30px; font-size: 1.2em;">
-        انتظر الأوامر القادمة للبدء...
+    <div class="controls">
+        <button class="skill-button" onclick="useSkill('نهاية العالم')">نهاية العالم</button>
+        <button class="skill-button" onclick="useSkill('حاجز الهاوية')">حاجز الهاوية</button>
+        <button class="skill-button" onclick="useSkill('العالم الوهمي')">العالم الوهمي</button>
+        <button class="skill-button" onclick="useSkill('الشق الاسود')">الشق الاسود</button>
     </div>
+
+    <p id="log" style="margin-top: 20px; color: #00ff00;">بانتظار حركة ديابلو...</p>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+            const btn = document.querySelector('.toggle-btn');
+            btn.innerText = sidebar.classList.contains('open') ? "▶" : "◀";
+        }
+
+        function useSkill(skillName) {
+            document.getElementById('log').innerText = "ديابلو استخدم مهارة: " + skillName;
+            // المهارات حالياً لا تفعل شيئاً في الدم حتى نبرمج القوة لاحقاً
+        }
+    </script>
 
 </body>
 </html>
-
