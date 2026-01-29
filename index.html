@@ -1,213 +1,210 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Diablo: Absolute Sovereign</title>
-    <style>
-        :root {
-            --gold: #ffd700; --red: #ff3e3e; --bg: #000;
-            --panel: rgba(15, 15, 15, 0.98); --neon: 0 0 20px var(--gold);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Diablo — Ultimate Professional Engine</title>
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
-        body, html { width: 100%; height: 100%; background: #000; color: white; font-family: sans-serif; overflow: hidden; }
-
-        /* نظام الطبقات - الحل النهائي لمشكلة الظهور */
-        .game-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: none; flex-direction: column; z-index: 10; background: #000;
-        }
-        .active-layer { display: flex !important; }
-
-        /* السهم الجانبي المصلح */
-        #side-deck {
-            position: fixed; left: -320px; top: 0; width: 300px; height: 100%;
-            background: var(--panel); border-right: 2px solid var(--gold);
-            z-index: 9999; transition: 0.4s ease; padding: 20px;
-            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
-        }
-        #side-deck.open { left: 0; }
-        .deck-toggle {
-            position: absolute; right: -45px; top: 100px; width: 45px; height: 100px;
-            background: var(--gold); color: #000; border-radius: 0 10px 10px 0;
-            display: flex; align-items: center; justify-content: center;
-            writing-mode: vertical-rl; font-weight: bold; cursor: pointer;
-        }
-
-        /* واجهة الخريطة */
-        .map-container { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; }
-        .map-box { position: relative; border: 2px solid #333; border-radius: 15px; overflow: hidden; }
-        .map-img { max-width: 95vw; max-height: 70vh; display: block; }
-        
-        .node {
-            position: absolute; width: 25px; height: 25px; background: rgba(0,0,0,0.7);
-            border: 2px solid var(--gold); border-radius: 50%; transform: translate(-50%, -50%);
-            cursor: pointer; z-index: 20;
-        }
-        .node-boss { border-color: var(--red); box-shadow: 0 0 10px var(--red); }
-
-        /* واجهة القتال */
-        .arena { flex: 1; display: flex; flex-direction: column; background: radial-gradient(#200, #000); }
-        .fighter-zone { flex: 1; display: flex; justify-content: space-around; align-items: center; }
-        .fighter { text-align: center; width: 45%; }
-        .hp-bar { width: 100%; height: 20px; background: #222; border-radius: 10px; margin-top: 10px; position: relative; overflow: hidden; }
-        .hp-fill { height: 100%; transition: 0.5s; width: 100%; }
-        .log { height: 120px; background: rgba(0,0,0,0.8); padding: 10px; overflow-y: auto; color: #0f0; font-size: 13px; border-top: 1px solid #333; }
-
-        /* المهارات */
-        .skill-item {
-            background: #1a1a1a; border: 1px solid #333; padding: 12px;
-            border-radius: 8px; margin-bottom: 10px; cursor: pointer;
-        }
-        .skill-item:hover { border-color: var(--gold); }
-        .locked { opacity: 0.3; pointer-events: none; }
-        
-        .btn { padding: 10px 20px; background: var(--gold); color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
-    </style>
+<style>
+:root{
+--gold:#ffd700;--red:#ff3b3b;--blue:#00cfff;
+--bg:#020202;--panel:#0b0b0b;
+--radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:#fff;font-family:Tahoma,Arial;height:100vh;overflow:hidden}
+.layer{display:none;position:absolute;inset:0}
+.layer.active{display:flex;flex-direction:column}
+.btn{background:var(--gold);color:#000;font-weight:900;border:none;
+padding:12px 22px;border-radius:var(--radius);cursor:pointer}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.panel{background:var(--panel);border-radius:var(--radius);padding:20px}
+#auth{justify-content:center;align-items:center}
+#mapHeader{display:flex;justify-content:space-between;padding:15px;border-bottom:2px solid var(--gold)}
+.map{flex:1;display:flex;justify-content:center;align-items:center}
+.node{width:26px;height:26px;border-radius:50%;border:2px solid var(--gold);
+position:absolute;cursor:pointer}
+.node.boss{border-color:var(--red);width:32px;height:32px}
+#battle{gap:10px}
+.fighters{display:flex;justify-content:space-around;align-items:center}
+.avatar{width:120px;height:120px;border-radius:50%;border:4px solid var(--gold);overflow:hidden}
+.bar{width:140px;height:18px;background:#111;border-radius:9px;overflow:hidden;margin-top:8px}
+.fill{height:100%;transition:.4s}
+#skills{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:10px}
+#log{height:140px;overflow-y:auto;font-size:13px;background:#050505;padding:10px}
+#skillTree{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.skillNode{border:2px solid #333;padding:10px;border-radius:12px;text-align:center;cursor:pointer}
+.skillNode.unlocked{border-color:var(--gold);background:#111}
+</style>
 </head>
+
 <body>
 
-    <div id="side-deck">
-        <div class="deck-toggle" onclick="toggleMenu()">القايمة ◄</div>
-        <div id="menu-content"></div>
+<!-- AUTH -->
+<div id="auth" class="layer active">
+  <div class="panel">
+    <h2 style="text-align:center;color:var(--gold)">DIABLO</h2>
+    <input id="key" type="password" placeholder="KEY"
+      style="width:100%;margin:15px 0;padding:12px;text-align:center">
+    <button class="btn" style="width:100%" onclick="Engine.login()">START</button>
+  </div>
+</div>
+
+<!-- MAP -->
+<div id="map" class="layer">
+  <div id="mapHeader">
+    <div>الرتبة: <b id="rank"></b></div>
+    <div>💰 <span id="gold"></span></div>
+  </div>
+  <div class="map">
+    <div class="node" style="top:40%;left:30%" onclick="Engine.startBattle('normal')"></div>
+    <div class="node boss" style="top:55%;left:65%" onclick="Engine.startBattle('boss')"></div>
+  </div>
+</div>
+
+<!-- BATTLE -->
+<div id="battle" class="layer">
+  <div class="fighters">
+    <div>
+      <div class="avatar"><img src="" width="100%" height="100%"></div>
+      <div class="bar"><div id="php" class="fill" style="background:#0f0"></div></div>
     </div>
-
-    <div id="layer-auth" class="game-layer active-layer" style="justify-content:center; align-items:center;">
-        <div style="border:1px solid var(--gold); padding:30px; border-radius:15px; text-align:center; width:80%;">
-            <h2 style="color:var(--gold)">LEGENDS SYSTEM</h2>
-            <input type="password" id="pass" placeholder="الرمز" style="width:100%; margin:20px 0; padding:10px; background:#111; color:var(--gold); border:1px solid #333;">
-            <button class="btn" onclick="checkAuth()">دخول</button>
-        </div>
+    <div style="font-size:32px">VS</div>
+    <div>
+      <div class="avatar" style="border-color:var(--red)"></div>
+      <div class="bar"><div id="ehp" class="fill" style="background:#f00"></div></div>
     </div>
+  </div>
 
-    <div id="layer-map" class="game-layer">
-        <div style="padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between;">
-            <span>ديابلو [ <span id="rank-txt" style="color:var(--gold)">مبتدئ</span> ]</span>
-            <span style="color:var(--gold)">$ <span id="gold-txt">100</span></span>
-        </div>
-        <div class="map-container">
-            <div class="map-box">
-                <img src="20260129_152721.jpg" class="map-img">
-                <div class="node" style="top:20%; left:50%;" onclick="openNPC('البنك المركزي')"></div>
-                <div class="node node-boss" style="top:30%; left:78%;" onclick="startBattle()"></div>
-                <div class="node" style="top:58%; left:88%;" onclick="openNPC('التاجر')"></div>
-            </div>
-        </div>
-    </div>
+  <div id="skills"></div>
+  <div id="log"></div>
 
-    <div id="layer-battle" class="game-layer">
-        <div class="arena">
-            <div class="fighter-zone">
-                <div class="fighter">
-                    <div style="color:var(--gold)">ديابلو</div>
-                    <div class="hp-bar"><div id="p-hp" class="hp-fill" style="background:#0f0"></div></div>
-                </div>
-                <div style="font-weight:bold; color:var(--gold)">VS</div>
-                <div class="fighter">
-                    <div style="color:var(--red)">غيوتارو</div>
-                    <div class="hp-bar"><div id="e-hp" class="hp-fill" style="background:#f00"></div></div>
-                </div>
-            </div>
-            <div id="battle-log" class="log"></div>
-            <button class="btn" style="margin:10px; background:#333; color:#fff;" onclick="exitBattle()">انسحاب</button>
-        </div>
-    </div>
+  <div style="text-align:center">
+    <button class="btn" onclick="Engine.leaveBattle()">انسحاب</button>
+  </div>
+</div>
 
-    <script>
-        const Core = {
-            p: { hp: 1000, mhp: 1000, gold: 100, wins: 0, rank: "مبتدئ", shield: false, lock: false },
-            e: { hp: 1500, mhp: 1500, atk: 180 },
-            skills: [
-                { id: 'atk', name: 'نهاية العالم', type: 'ضربة لا تُصد', val: 400, cd: 0, mcd: 3, locked: false },
-                { id: 'shd', name: 'حاجز الهاوية', type: 'تعزيز', val: 0, cd: 0, mcd: 4, locked: false },
-                { id: 'abs', name: 'ماندالا الدم', type: 'افتراس', val: 250, cd: 0, mcd: 5, locked: true }
-            ]
-        };
+<!-- SKILL TREE -->
+<div id="tree" class="layer">
+  <div class="panel">
+    <h3>شجرة المهارات</h3>
+    <div id="skillTree"></div>
+    <br>
+    <button class="btn" onclick="Engine.show('map')">رجوع</button>
+  </div>
+</div>
 
-        function checkAuth() {
-            if(btoa(document.getElementById('pass').value) === "MTIz") {
-                showLayer('layer-map');
-                updateMenu('map');
-            } else { alert("خطأ"); }
-        }
+<script>
+const Engine={
+state:{
+ rank:"مبتدئ",
+ gold:100,
+ hp:1000,mhp:1000,
+ enemy:{hp:0,mhp:0},
+ skills:[
+  {id:"slash",name:"ضربة قاطعة",dmg:180,cd:0,max:2,unlocked:true},
+  {id:"fire",name:"نار الجحيم",dmg:320,cd:0,max:4,unlocked:false},
+  {id:"heal",name:"شفاء",heal:250,cd:0,max:5,unlocked:false}
+ ]
+},
 
-        function showLayer(id) {
-            document.querySelectorAll('.game-layer').forEach(l => l.classList.remove('active-layer'));
-            document.getElementById(id).classList.add('active-layer');
-        }
+login(){
+ if(key.value!=="123")return;
+ this.load();this.show("map");this.ui();
+},
 
-        function toggleMenu() { document.getElementById('side-deck').classList.toggle('open'); }
+show(id){
+ document.querySelectorAll(".layer").forEach(l=>l.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ if(id==="tree")this.renderTree();
+},
 
-        function updateMenu(mode) {
-            const content = document.getElementById('menu-content');
-            let html = `<h3 style="color:var(--gold); border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:15px;">${mode === 'map' ? 'البيانات' : 'المهارات'}</h3>`;
-            
-            if(mode === 'map') {
-                html += `<p>الذهب: ${Core.p.gold}</p><p>الرتبة: ${Core.p.rank}</p>`;
-            } else {
-                Core.skills.forEach(s => {
-                    html += `<div class="skill-item ${s.locked ? 'locked' : ''}" onclick="useSkill('${s.id}')">
-                        <b>${s.name}</b> [${s.type}]<br>
-                        <small>${s.cd > 0 ? 'انتظار: ' + s.cd : 'جاهزة'}</small>
-                    </div>`;
-                });
-            }
-            content.innerHTML = html;
-        }
+ui(){
+ rank.textContent=this.state.rank;
+ gold.textContent=this.state.gold;
+ php.style.width=this.state.hp/this.state.mhp*100+"%";
+ ehp.style.width=this.state.enemy.hp/this.state.enemy.mhp*100+"%";
+},
 
-        function openNPC(name) { alert("مرحبا بك في " + name); }
+startBattle(type){
+ this.state.enemy.mhp= type==="boss"?2200:1400;
+ this.state.enemy.hp=this.state.enemy.mhp;
+ this.show("battle");
+ this.log("⚔️ بدأ القتال");
+ this.renderSkills();
+ this.ui();
+},
 
-        function startBattle() {
-            Core.e.hp = Core.e.mhp; Core.p.hp = Core.p.mhp;
-            Core.skills.forEach(s => s.cd = 0);
-            document.getElementById('battle-log').innerHTML = "بدأ القتال ضد غيوتارو!";
-            updateUI();
-            showLayer('layer-battle');
-            updateMenu('battle');
-        }
+renderSkills(){
+ skills.innerHTML="";
+ this.state.skills.forEach(s=>{
+  if(!s.unlocked)return;
+  const b=document.createElement("button");
+  b.className="btn";
+  b.textContent=`${s.name} (${s.cd})`;
+  b.disabled=s.cd>0;
+  b.onclick=()=>this.useSkill(s.id);
+  skills.appendChild(b);
+ });
+},
 
-        function useSkill(id) {
-            if(Core.p.lock) return;
-            const s = Core.skills.find(x => x.id === id);
-            if(s.cd > 0 || s.locked) return;
+useSkill(id){
+ const s=this.state.skills.find(x=>x.id===id);
+ if(!s||s.cd>0)return;
+ if(s.dmg)this.state.enemy.hp-=s.dmg;
+ if(s.heal)this.state.hp=Math.min(this.state.mhp,this.state.hp+s.heal);
+ s.cd=s.max;
+ this.log("✨ "+s.name);
+ if(this.state.enemy.hp<=0)return this.win();
+ this.enemyTurn();this.tick();this.ui();this.renderSkills();
+},
 
-            Core.p.lock = true; s.cd = s.mcd;
-            if(id === 'atk') { Core.e.hp -= s.val; log(`ديابلو استخدم ${s.name} بقوة ${s.val}`); }
-            else if(id === 'shd') { Core.p.shield = true; log(`ديابلو فعل الدرع`); }
-            else if(id === 'abs') { Core.e.hp -= s.val; Core.p.hp = Math.min(Core.p.mhp, Core.p.hp + s.val); log(`تم امتصاص حياة العدو!`); }
+enemyTurn(){
+ const dmg=160;
+ this.state.hp-=dmg;
+ this.log("👹 العدو ضربك "+dmg);
+ if(this.state.hp<=0)this.lose();
+},
 
-            updateUI(); updateMenu('battle');
-            if(Core.e.hp <= 0) return win();
-            setTimeout(enemyTurn, 1000);
-        }
+tick(){
+ this.state.skills.forEach(s=>{if(s.cd>0)s.cd--});
+},
 
-        function enemyTurn() {
-            let d = Core.p.shield ? 0 : Core.e.atk;
-            Core.p.hp -= d;
-            log(Core.p.shield ? "الدرع صد الهجوم!" : `غيوتارو ضربك بقوة ${d}`);
-            Core.p.shield = false; Core.p.lock = false;
-            Core.skills.forEach(s => { if(s.cd > 0) s.cd--; });
-            updateUI(); updateMenu('battle');
-            if(Core.p.hp <= 0) { alert("هزمت!"); exitBattle(); }
-        }
+win(){
+ this.log("🏆 نصر!");
+ this.state.gold+=300;
+ if(this.state.gold>=400)this.state.skills[1].unlocked=true;
+ if(this.state.gold>=700)this.state.skills[2].unlocked=true;
+ this.save();this.leaveBattle();
+},
 
-        function win() {
-            alert("انتصرت وافترست المهارة!");
-            Core.p.gold += 500; Core.skills.find(s => s.id === 'abs').locked = false;
-            Core.p.rank = "شيطان عظيم";
-            exitBattle();
-        }
+lose(){
+ this.log("💀 هزيمة");
+ this.state.hp=this.state.mhp;
+ this.leaveBattle();
+},
 
-        function updateUI() {
-            document.getElementById('p-hp').style.width = (Core.p.hp/Core.p.mhp*100) + "%";
-            document.getElementById('e-hp').style.width = (Core.e.hp/Core.e.mhp*100) + "%";
-            document.getElementById('gold-txt').innerText = Core.p.gold;
-            document.getElementById('rank-txt').innerText = Core.p.rank;
-        }
+leaveBattle(){
+ this.show("map");this.ui();
+},
 
-        function log(m) { const l = document.getElementById('battle-log'); l.innerHTML = `> ${m}<br>` + l.innerHTML; }
-        function exitBattle() { showLayer('layer-map'); updateMenu('map'); }
-    </script>
+renderTree(){
+ skillTree.innerHTML="";
+ this.state.skills.forEach(s=>{
+  const d=document.createElement("div");
+  d.className="skillNode "+(s.unlocked?"unlocked":"");
+  d.textContent=s.name;
+  skillTree.appendChild(d);
+ });
+},
+
+log(t){
+ log.innerHTML="<div>"+t+"</div>"+log.innerHTML;
+},
+
+save(){localStorage.setItem("diablo",JSON.stringify(this.state))},
+load(){const d=localStorage.getItem("diablo");if(d)this.state=JSON.parse(d)}
+};
+</script>
 </body>
 </html>
