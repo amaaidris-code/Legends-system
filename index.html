@@ -3,116 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legends System - RPG Edition</title>
+    <title>Legends System - Story Mode</title>
     <style>
-        body { background: #000; color: gold; font-family: 'Cairo', sans-serif; text-align: center; direction: rtl; margin: 0; }
-        .screen { display: none; padding: 20px; }
+        body { background: #000; color: gold; font-family: sans-serif; text-align: center; direction: rtl; margin: 0; }
+        .screen { display: none; padding: 10px; }
         .active { display: block; }
         
         /* شاشة الدخول */
-        #login-screen input, #login-screen select { padding: 10px; margin: 10px; width: 80%; border-radius: 5px; }
-        .btn-start { background: gold; color: black; padding: 15px 30px; border: none; font-weight: bold; cursor: pointer; }
+        .login-box { margin-top: 50px; background: #111; padding: 20px; border: 2px solid gold; display: inline-block; border-radius: 10px; }
+        input, select { padding: 10px; margin: 10px; width: 80%; background: #222; color: white; border: 1px solid gold; }
+        .btn { background: gold; color: black; padding: 12px 25px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
 
         /* الخريطة */
-        #map-container { position: relative; display: inline-block; width: 100%; max-width: 800px; }
-        #map-img { width: 100%; border: 2px solid gold; }
-        .map-point { 
-            position: absolute; width: 50px; height: 50px; 
-            background: rgba(255, 215, 0, 0.3); border-radius: 50%; 
-            cursor: pointer; border: 2px solid gold;
+        .map-wrapper { position: relative; display: inline-block; margin-top: 20px; }
+        .map-img { width: 100%; max-width: 900px; border: 3px solid #444; }
+        
+        /* الدوائر التفاعلية (أماكن الشخصيات) */
+        .map-dot { 
+            position: absolute; width: 45px; height: 45px; 
+            border: 3px solid gold; border-radius: 50%; 
+            background: rgba(255, 215, 0, 0.2); cursor: pointer;
+            transition: 0.3s;
         }
-        .map-point:hover { background: rgba(255, 215, 0, 0.7); }
+        .map-dot:hover { background: rgba(255, 215, 0, 0.6); transform: scale(1.2); }
 
-        /* أماكن الخريطة (إحداثيات تقريبية) */
-        #point-colosseum { top: 30%; left: 70%; } /* الكولوسيوم */
-        #point-training { top: 15%; left: 40%; } /* مكان التدريب */
-        #point-tavern { top: 75%; left: 55%; } /* الحانة */
-        #point-bank { top: 75%; left: 28%; } /* البنك */
-        #point-guild { top: 45%; left: 48%; } /* النقابة */
+        /* توزيع النقاط بناءً على صورة الخريطة */
+        #loc-training { top: 7%; left: 41%; }   /* الفارس في الأعلى */
+        #loc-colosseum { top: 21%; left: 73%; } /* شخصية الحلبة */
+        #loc-guild { top: 44%; left: 46%; }     /* الشخصية المركزية */
+        #loc-bank { top: 48%; left: 81%; }      /* شخصية التاجر/البنك */
+        #loc-tavern { top: 76%; left: 56%; }    /* حانة الأساطير */
+        #loc-library { top: 74%; left: 32%; }   /* الشخصية على اليسار بالأسفل */
+        #loc-secret { top: 38%; left: 18%; }    /* الشخصية النارية */
+
+        .status-bar { background: #1a1a1a; padding: 10px; border-bottom: 2px solid gold; position: sticky; top: 0; z-index: 100; }
     </style>
 </head>
 <body>
 
     <div id="login-screen" class="screen active">
-        <h1>مرحباً بك في Legends System</h1>
-        <p>اختر هويتك السرية للبدء</p>
-        <select id="char-select">
-            <option value="ديابلو">ديابلو (Tensura)</option>
-            <option value="ريمورو">ريمورو (Tensura)</option>
-            <option value="لوفي">لوفي (One Piece)</option>
-            <option value="سوكونا">سوكونا (Jujutsu Kaisen)</option>
-        </select><br>
-        <input type="text" id="player-name" placeholder="اكتب اسمك الحركي"><br>
-        <input type="password" id="player-pass" placeholder="كلمة السر الخاصة بك"><br>
-        <button class="btn-start" onclick="startGame()">دخول إلى العالم</button>
+        <div class="login-box">
+            <h2>تسجيل الدخول - Legends System</h2>
+            <select id="char-choice">
+                <option value="ديابلو">ديابلو</option>
+                <option value="ريمورو">ريمورو</option>
+                <option value="لوفي">لوفي</option>
+            </select><br>
+            <input type="text" id="user-name" placeholder="اسم المستخدم"><br>
+            <input type="password" id="user-pass" placeholder="كلمة السر"><br>
+            <button class="btn" onclick="enterWorld()">بدء المغامرة</button>
+        </div>
     </div>
 
     <div id="map-screen" class="screen">
-        <h2>خريطة العالم: اختر وجهتك</h2>
-        <div id="map-container">
-            <img src="20260128_183545.jpg" id="map-img">
-            
-            <div id="point-colosseum" class="map-point" onclick="goTo('colosseum')" title="الكولوسيوم"></div>
-            <div id="point-training" class="map-point" onclick="goTo('training')" title="ساحة التدريب"></div>
-            <div id="point-tavern" class="map-point" onclick="goTo('tavern')" title="الحانة"></div>
-            <div id="point-bank" class="map-point" onclick="goTo('bank')" title="البنك"></div>
-            <div id="point-guild" class="map-point" onclick="goTo('guild')" title="نقابة المغامرين"></div>
+        <div class="status-bar">
+            <span>اللاعب: <b id="p-name"></b></span> | 
+            <span>الشخصية: <b id="p-char"></b></span> | 
+            <span>الذهب: <b id="p-gold">100</b></span>
         </div>
-        <p id="map-status">مرحباً <span id="display-name"></span>، أين تريد الذهاب؟</p>
+
+        <h3>اختر وجهتك من الخريطة</h3>
+        <div class="map-wrapper">
+            <img src="20260128_183545.jpg" class="map-img">
+            
+            <div id="loc-training" class="map-dot" onclick="visit('ساحة التدريب')"></div>
+            <div id="loc-colosseum" class="map-dot" onclick="visit('الكولوسيوم الملكي')"></div>
+            <div id="loc-guild" class="map-dot" onclick="visit('نقابة المغامرين')"></div>
+            <div id="loc-bank" class="map-dot" onclick="visit('البنك المركزي')"></div>
+            <div id="loc-tavern" class="map-dot" onclick="visit('الحانة السعيدة')"></div>
+            <div id="loc-library" class="map-dot" onclick="visit('المكتبة المحرمة')"></div>
+            <div id="loc-secret" class="map-dot" onclick="visit('المنطقة النارية')"></div>
+        </div>
     </div>
 
     <div id="location-screen" class="screen">
-        <h1 id="loc-title"></h1>
-        <div id="loc-content" style="padding: 50px; background: #111; border: 1px solid gold;">
+        <h1 id="location-title" style="color: gold;"></h1>
+        <div id="location-desc" style="background: #111; padding: 40px; border: 1px solid #444; margin: 20px;">
             </div>
-        <br>
-        <button class="btn-start" onclick="backToMap()">العودة للخريطة</button>
+        <button class="btn" onclick="showMap()">العودة للخريطة</button>
     </div>
 
     <script>
-        let player = { name: "", char: "", gold: 100 };
+        let userData = { name: "", character: "", gold: 100 };
 
-        function startGame() {
-            const name = document.getElementById('player-name').value;
-            const pass = document.getElementById('player-pass').value;
-            const char = document.getElementById('char-select').value;
+        function enterWorld() {
+            const name = document.getElementById('user-name').value;
+            const char = document.getElementById('char-choice').value;
+            if(name === "") return alert("أدخل اسمك أولاً!");
 
-            if(name === "" || pass === "") {
-                alert("يرجى ملء كافة البيانات!");
-                return;
-            }
+            userData.name = name;
+            userData.character = char;
 
-            player.name = name;
-            player.char = char;
-
-            document.getElementById('display-name').innerText = name + " (" + char + ")";
-            switchScreen('map-screen');
-        }
-
-        function goTo(location) {
-            const title = {
-                'colosseum': 'كولوسيوم القتال (هنا تواجه غيوتارو)',
-                'training': 'ساحة تدريب الفرسان',
-                'tavern': 'حانة الأساطير',
-                'bank': 'البنك الملكي',
-                'guild': 'نقابة المغامرين'
-            };
-
-            document.getElementById('loc-title').innerText = title[location];
+            document.getElementById('p-name').innerText = name;
+            document.getElementById('p-char').innerText = char;
             
-            // إذا اختار الكولوسيوم، يمكننا وضع كود القتال القديم هنا
-            if(location === 'colosseum') {
-                document.getElementById('loc-content').innerHTML = "تم العثور على غيوتارو! هل أنت مستعد للقتال؟ <br><br> <button class='btn-start'>بدء المعركة</button>";
-            } else {
-                document.getElementById('loc-content').innerHTML = "هذا المكان قيد التطوير في القصة...";
-            }
-
-            switchScreen('location-screen');
+            changeScreen('map-screen');
         }
 
-        function backToMap() { switchScreen('map-screen'); }
+        function visit(placeName) {
+            document.getElementById('location-title').innerText = placeName;
+            let desc = "";
+            
+            if(placeName === 'البنك المركزي') desc = "مرحباً بك في البنك، هنا يمكنك تخزين الذهب أو استبدال العملات.";
+            else if(placeName === 'نقابة المغامرين') desc = "هنا تجد المهمات الجديدة لرفع مستواك.";
+            else if(placeName === 'الحانة السعيدة') desc = "استرح قليلاً واسمع آخر الإشاعات عن العالم.";
+            else desc = "هذا المكان سيفتح قريباً في فصول القصة القادمة.";
 
-        function switchScreen(id) {
+            document.getElementById('location-desc').innerText = desc;
+            changeScreen('location-screen');
+        }
+
+        function showMap() { changeScreen('map-screen'); }
+
+        function changeScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
