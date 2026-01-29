@@ -5,116 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Legends System - Story Mode</title>
     <style>
-        body { background: #000; color: gold; font-family: sans-serif; text-align: center; direction: rtl; margin: 0; }
+        body { background: #000; color: gold; font-family: sans-serif; text-align: center; direction: rtl; margin: 0; overflow-x: hidden; }
         .screen { display: none; padding: 10px; }
         .active { display: block; }
         
-        /* شاشة الدخول */
-        .login-box { margin-top: 50px; background: #111; padding: 20px; border: 2px solid gold; display: inline-block; border-radius: 10px; }
-        input, select { padding: 10px; margin: 10px; width: 80%; background: #222; color: white; border: 1px solid gold; }
-        .btn { background: gold; color: black; padding: 12px 25px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; }
+        /* تسجيل الدخول */
+        .login-box { margin-top: 50px; background: #111; padding: 20px; border: 2px solid gold; display: inline-block; border-radius: 10px; width: 90%; max-width: 400px; }
+        input, select { padding: 12px; margin: 10px 0; width: 100%; background: #222; color: white; border: 1px solid gold; border-radius: 5px; box-sizing: border-box; }
+        .btn { background: gold; color: black; padding: 12px 25px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; width: 100%; margin-top: 10px; }
 
         /* الخريطة */
-        .map-wrapper { position: relative; display: inline-block; margin-top: 20px; }
-        .map-img { width: 100%; max-width: 900px; border: 3px solid #444; }
+        .status-bar { background: #1a1a1a; padding: 10px; border-bottom: 2px solid gold; font-size: 14px; display: flex; justify-content: space-around; }
+        .map-wrapper { position: relative; display: inline-block; margin-top: 15px; line-height: 0; }
+        .map-img { width: 100%; max-width: 1000px; border: 2px solid #444; }
         
-        /* الدوائر التفاعلية (أماكن الشخصيات) */
+        /* الدوائر التفاعلية بدقة فوق رؤوس الشخصيات */
         .map-dot { 
-            position: absolute; width: 45px; height: 45px; 
-            border: 3px solid gold; border-radius: 50%; 
-            background: rgba(255, 215, 0, 0.2); cursor: pointer;
-            transition: 0.3s;
+            position: absolute; width: 10%; height: 10%; 
+            border: 2px solid gold; border-radius: 50%; 
+            background: rgba(255, 215, 0, 0.15); cursor: pointer;
+            transform: translate(-50%, -50%);
         }
-        .map-dot:hover { background: rgba(255, 215, 0, 0.6); transform: scale(1.2); }
 
-        /* توزيع النقاط بناءً على صورة الخريطة */
-        #loc-training { top: 7%; left: 41%; }   /* الفارس في الأعلى */
-        #loc-colosseum { top: 21%; left: 73%; } /* شخصية الحلبة */
-        #loc-guild { top: 44%; left: 46%; }     /* الشخصية المركزية */
-        #loc-bank { top: 48%; left: 81%; }      /* شخصية التاجر/البنك */
-        #loc-tavern { top: 76%; left: 56%; }    /* حانة الأساطير */
-        #loc-library { top: 74%; left: 32%; }   /* الشخصية على اليسار بالأسفل */
-        #loc-secret { top: 38%; left: 18%; }    /* الشخصية النارية */
+        /* الإحداثيات المحدثة بناءً على الصورة المرفقة */
+        #loc-1 { top: 12%; left: 37%; } /* الشخصية العلوية يسار */
+        #loc-2 { top: 25%; left: 70%; } /* شخصية الكولوسيوم (يمين علوي) */
+        #loc-3 { top: 38%; left: 16%; } /* الشخصية النارية (يسار منتصف) */
+        #loc-4 { top: 48%; left: 49%; } /* الشخصية المركزية (النقابة) */
+        #loc-5 { top: 51%; left: 85%; } /* شخصية البنك (أقصى اليمين) */
+        #loc-6 { top: 56%; left: 18%; } /* شخصية الساحر (أسفل اليسار) */
+        #loc-7 { top: 74%; left: 29%; } /* شخصية أسفل يسار */
+        #loc-8 { top: 78%; left: 56%; } /* شخصية الحانة (أسفل منتصف) */
 
-        .status-bar { background: #1a1a1a; padding: 10px; border-bottom: 2px solid gold; position: sticky; top: 0; z-index: 100; }
+        #location-screen { padding: 40px 20px; }
+        #location-content { background: #111; border: 1px solid gold; padding: 30px; border-radius: 10px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
     <div id="login-screen" class="screen active">
         <div class="login-box">
-            <h2>تسجيل الدخول - Legends System</h2>
+            <h2>Legends System</h2>
+            <p>سجل هويتك لدخول القصة</p>
+            <input type="text" id="user-name" placeholder="اسم اللاعب">
             <select id="char-choice">
                 <option value="ديابلو">ديابلو</option>
                 <option value="ريمورو">ريمورو</option>
                 <option value="لوفي">لوفي</option>
-            </select><br>
-            <input type="text" id="user-name" placeholder="اسم المستخدم"><br>
-            <input type="password" id="user-pass" placeholder="كلمة السر"><br>
-            <button class="btn" onclick="enterWorld()">بدء المغامرة</button>
+            </select>
+            <input type="password" id="user-pass" placeholder="كلمة السر">
+            <button class="btn" onclick="enterWorld()">دخول العالم</button>
         </div>
     </div>
 
     <div id="map-screen" class="screen">
         <div class="status-bar">
-            <span>اللاعب: <b id="p-name"></b></span> | 
-            <span>الشخصية: <b id="p-char"></b></span> | 
+            <span>اللاعب: <b id="p-name"></b></span>
             <span>الذهب: <b id="p-gold">100</b></span>
         </div>
-
-        <h3>اختر وجهتك من الخريطة</h3>
+        <h3 style="margin: 15px 0;">اختر وجهتك من الخريطة</h3>
         <div class="map-wrapper">
             <img src="20260128_183545.jpg" class="map-img">
             
-            <div id="loc-training" class="map-dot" onclick="visit('ساحة التدريب')"></div>
-            <div id="loc-colosseum" class="map-dot" onclick="visit('الكولوسيوم الملكي')"></div>
-            <div id="loc-guild" class="map-dot" onclick="visit('نقابة المغامرين')"></div>
-            <div id="loc-bank" class="map-dot" onclick="visit('البنك المركزي')"></div>
-            <div id="loc-tavern" class="map-dot" onclick="visit('الحانة السعيدة')"></div>
-            <div id="loc-library" class="map-dot" onclick="visit('المكتبة المحرمة')"></div>
-            <div id="loc-secret" class="map-dot" onclick="visit('المنطقة النارية')"></div>
+            <div id="loc-1" class="map-dot" onclick="visit('مكان التدريب')"></div>
+            <div id="loc-2" class="map-dot" onclick="visit('الكولوسيوم الملكي')"></div>
+            <div id="loc-3" class="map-dot" onclick="visit('المنطقة النارية')"></div>
+            <div id="loc-4" class="map-dot" onclick="visit('نقابة المغامرين')"></div>
+            <div id="loc-5" class="map-dot" onclick="visit('البنك الملكي')"></div>
+            <div id="loc-6" class="map-dot" onclick="visit('مختبر السحر')"></div>
+            <div id="loc-7" class="map-dot" onclick="visit('مكتبة الأسرار')"></div>
+            <div id="loc-8" class="map-dot" onclick="visit('حانة الأساطير')"></div>
         </div>
     </div>
 
     <div id="location-screen" class="screen">
-        <h1 id="location-title" style="color: gold;"></h1>
-        <div id="location-desc" style="background: #111; padding: 40px; border: 1px solid #444; margin: 20px;">
-            </div>
+        <h1 id="loc-title" style="color: gold;"></h1>
+        <div id="location-content">
+            <p id="loc-desc" style="font-size: 18px;"></p>
+        </div>
         <button class="btn" onclick="showMap()">العودة للخريطة</button>
     </div>
 
     <script>
-        let userData = { name: "", character: "", gold: 100 };
+        let pData = { name: "", gold: 100 };
 
         function enterWorld() {
             const name = document.getElementById('user-name').value;
-            const char = document.getElementById('char-choice').value;
-            if(name === "") return alert("أدخل اسمك أولاً!");
-
-            userData.name = name;
-            userData.character = char;
-
+            if(!name) return alert("أدخل اسمك أولاً");
+            pData.name = name;
             document.getElementById('p-name').innerText = name;
-            document.getElementById('p-char').innerText = char;
-            
             changeScreen('map-screen');
         }
 
-        function visit(placeName) {
-            document.getElementById('location-title').innerText = placeName;
+        function visit(name) {
+            document.getElementById('loc-title').innerText = name;
             let desc = "";
+            if(name === 'البنك الملكي') desc = "أهلاً بك في البنك. يمكنك هنا إيداع الذهب لحمايته من السرقة.";
+            else if(name === 'نقابة المغامرين') desc = "هنا تجد المهام اليومية لرفع رتبتك كـ مغامر أسطوري.";
+            else if(name === 'حانة الأساطير') desc = "مكان هادئ لسماع الشائعات والحصول على معلومات سرية.";
+            else desc = "هذا المكان مغلق حالياً، سيتم فتحه في الفصل القادم من القصة.";
             
-            if(placeName === 'البنك المركزي') desc = "مرحباً بك في البنك، هنا يمكنك تخزين الذهب أو استبدال العملات.";
-            else if(placeName === 'نقابة المغامرين') desc = "هنا تجد المهمات الجديدة لرفع مستواك.";
-            else if(placeName === 'الحانة السعيدة') desc = "استرح قليلاً واسمع آخر الإشاعات عن العالم.";
-            else desc = "هذا المكان سيفتح قريباً في فصول القصة القادمة.";
-
-            document.getElementById('location-desc').innerText = desc;
+            document.getElementById('loc-desc').innerText = desc;
             changeScreen('location-screen');
         }
 
         function showMap() { changeScreen('map-screen'); }
-
         function changeScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
