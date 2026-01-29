@@ -3,169 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legends System - Pro Edition</title>
+    <title>Legends System - Fixed & Battle Edition</title>
     <style>
         :root { --gold: #ffd700; --red: #ff4d4d; --bg: #050505; --panel: #1a1a1a; }
-        body { background: var(--bg); color: #e0e0e0; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; overflow-x: hidden; }
-        
-        /* تأثيرات التحميل والشاشات */
-        .screen { display: none; padding: 20px; animation: slideIn 0.5s ease-out; }
+        body { background: var(--bg); color: #e0e0e0; font-family: sans-serif; margin: 0; text-align: center; }
+        .screen { display: none; padding: 20px; animation: fadeIn 0.4s; }
         .active { display: block; }
-        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* شريط المعلومات العلوي المتقدم */
-        .status-header { background: #111; padding: 15px; border-bottom: 3px solid var(--gold); display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .stat-item { font-weight: bold; font-size: 14px; }
-        .stat-val { color: var(--gold); text-shadow: 0 0 5px gold; }
+        /* شريط الحالة */
+        .status-header { background: #111; padding: 15px; border-bottom: 3px solid var(--gold); display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 1000; }
+        .stat-val { color: var(--gold); font-weight: bold; }
 
-        /* شاشة الخريطة */
-        .map-container { position: relative; display: inline-block; margin-top: 20px; border: 5px solid #222; border-radius: 15px; overflow: hidden; box-shadow: 0 0 30px rgba(255,215,0,0.1); }
-        .map-img { width: 100%; max-width: 900px; display: block; }
-        .node { position: absolute; width: 10%; height: 10%; border: 3px solid var(--gold); border-radius: 50%; background: rgba(0,0,0,0.6); cursor: pointer; transform: translate(-50%, -50%); transition: 0.3s; z-index: 10; box-shadow: inset 0 0 10px gold; }
-        .node:hover { transform: translate(-50%, -50%) scale(1.2); background: rgba(255,215,0,0.3); box-shadow: 0 0 20px gold; }
-        .node-center { border-color: var(--red); box-shadow: inset 0 0 10px red; }
-
-        /* نظام الـ 7 حول 1 (الإحداثيات) */
-        .n1 { top: 20%; left: 50%; } .n2 { top: 30%; left: 78%; } .n3 { top: 58%; left: 88%; }
-        .n4 { top: 82%; left: 68%; } .n5 { top: 82%; left: 32%; } .n6 { top: 58%; left: 12%; }
-        .n7 { top: 30%; left: 22%; } .nc { top: 50%; left: 50%; }
-
-        /* شاشة التفاعل مع الـ NPC */
-        .npc-view { max-width: 600px; margin: 30px auto; background: var(--panel); border: 2px solid var(--gold); border-radius: 20px; padding: 25px; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
-        .npc-portrait { width: 150px; height: 150px; border-radius: 50%; border: 3px solid var(--gold); margin-bottom: 15px; background: #333; }
-        .dialog-bubble { background: #222; border-right: 5px solid var(--gold); padding: 15px; text-align: right; margin: 20px 0; line-height: 1.6; font-size: 17px; }
+        /* الخريطة */
+        .map-frame { position: relative; display: inline-block; margin-top: 20px; border: 3px solid #333; line-height: 0; }
+        .map-img { width: 100%; max-width: 850px; height: auto; border-radius: 10px; }
+        .node { position: absolute; width: 11%; height: 11%; border: 3px solid var(--gold); border-radius: 50%; background: rgba(0,0,0,0.5); cursor: pointer; transform: translate(-50%, -50%); z-index: 10; }
         
-        .action-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .act-btn { background: #333; color: white; border: 1px solid #555; padding: 12px; cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.2s; }
-        .act-btn:hover { background: var(--gold); color: black; border-color: white; }
+        /* توزيع النقاط */
+        .nc { top: 50%; left: 50%; } .n1 { top: 20%; left: 50%; } .n2 { top: 30%; left: 78%; }
+        .n3 { top: 58%; left: 88%; } .n4 { top: 82%; left: 68%; } .n5 { top: 82%; left: 32%; }
+        .n6 { top: 58%; left: 12%; } .n7 { top: 30%; left: 22%; }
 
-        /* شاشة تسجيل الدخول */
-        .auth-card { background: #111; border: 2px solid var(--gold); padding: 40px; border-radius: 20px; display: inline-block; margin-top: 80px; width: 350px; }
-        .input-group { margin-bottom: 20px; text-align: right; }
-        input, select { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
+        /* شاشة التفاعل والقتال */
+        .box-view { max-width: 500px; margin: 30px auto; background: var(--panel); border: 2px solid var(--gold); border-radius: 20px; padding: 25px; }
+        .dialog { background: #222; padding: 15px; border-radius: 10px; margin: 15px 0; }
+        .btn { background: #333; color: white; border: 1px solid var(--gold); padding: 12px; cursor: pointer; border-radius: 8px; width: 100%; margin: 5px 0; font-weight: bold; }
+        .btn:hover { background: var(--gold); color: black; }
+        .btn-red { border-color: var(--red); color: var(--red); }
+        .btn-red:hover { background: var(--red); color: white; }
     </style>
 </head>
 <body>
 
     <div id="login-screen" class="screen active">
-        <div class="auth-card">
-            <h1 style="color: var(--gold); margin-bottom: 30px;">Legends System</h1>
-            <div class="input-group">
-                <label>اختر البطل:</label>
-                <select id="char-select">
-                    <option value="ديابلو">ديابلو (سيد الشياطين)</option>
-                    <option value="ريمورو">ريمورو (التنين الحقيقي)</option>
-                    <option value="لوفي">لوفي (ملك القراصنة)</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>كلمة السر:</label>
-                <input type="password" id="pass-field" placeholder="أدخل الرمز السري">
-            </div>
-            <button class="act-btn" style="width: 100%; background: var(--gold); color: black;" onclick="login()">دخول العالم</button>
+        <div style="margin-top: 80px; display: inline-block; background: #111; padding: 30px; border: 2px solid var(--gold); border-radius: 15px;">
+            <h2>تسجيل دخول البطل</h2>
+            <select id="char-select">
+                <option value="ديابلو">ديابلو</option>
+                <option value="ريمورو">ريمورو</option>
+            </select>
+            <input type="password" id="pass-field" placeholder="كلمة السر (123)">
+            <button class="btn" style="background: var(--gold); color: black;" onclick="login()">دخول</button>
         </div>
     </div>
 
     <div id="map-screen" class="screen">
         <div class="status-header">
-            <div class="stat-item">البطل: <span class="stat-val" id="p-char">--</span></div>
-            <div class="stat-item">الذهب: <span class="stat-val" id="p-gold">100</span></div>
-            <div class="stat-item">المستوى: <span class="stat-val">LV. 1</span></div>
+            <div>البطل: <span id="st-char" class="stat-val"></span></div>
+            <div>الذهب: <span id="st-gold" class="stat-val"></span></div>
+            <div>خزنة البنك: <span id="st-bank" class="stat-val">0</span></div>
         </div>
-
-        <div class="map-container">
+        <div class="map-frame">
             <img src="20260129_152721.jpg" class="map-img">
-            <div class="node nc" onclick="enter('guild')"></div>
-            <div class="node n1" onclick="enter('bank')"></div>
-            <div class="node n2" onclick="enter('training')"></div>
-            <div class="node n3" onclick="enter('market')"></div>
-            <div class="node n4" onclick="enter('tavern')"></div>
-            <div class="node n5" onclick="enter('healer')"></div>
-            <div class="node n6" onclick="enter('library')"></div>
-            <div class="node n7" onclick="enter('secret')"></div>
+            <div class="node nc" onclick="openNPC('guild')"></div>
+            <div class="node n1" onclick="openNPC('bank')"></div>
+            <div class="node n2" onclick="openNPC('battle')"></div>
         </div>
-        <p style="color: #666; margin-top: 15px;">اضغط على الدوائر الذهبية للتفاعل مع سكان العالم</p>
+        <p>المركز (النقابة) | الأعلى (البنك) | اليمين العلوي (قتال وحوش)</p>
     </div>
 
     <div id="npc-screen" class="screen">
-        <div class="npc-view">
-            <div id="npc-portrait-container"></div>
+        <div class="box-view">
             <h2 id="npc-name" style="color: var(--gold);"></h2>
-            <div class="dialog-bubble" id="npc-dialog"></div>
-            <div class="action-list" id="npc-actions"></div>
-            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-            <button class="act-btn" style="width: 100%; background: #222;" onclick="showMap()">العودة للخريطة</button>
+            <div id="npc-dialog" class="dialog"></div>
+            <div id="npc-actions"></div>
+            <button class="btn" style="margin-top: 20px; opacity: 0.7;" onclick="showMap()">العودة للخريطة</button>
         </div>
     </div>
 
     <script>
-        let gameState = { gold: 100, char: "", level: 1, inventory: [] };
-        const PASS = { "ديابلو": "123", "ريمورو": "456", "لوفي": "789" };
-
-        const WORLD_DATA = {
-            'bank': {
-                name: "الخازن الذهبي",
-                dialog: "أهلاً بك يا ديابلو.. هل جئت لتأمين أموالك؟ في هذا العالم، الذهب هو القوة الثانية بعد السحر.",
-                actions: [
-                    { t: "إيداع 10 ذهبة", f: () => manageGold(-10) },
-                    { t: "سحب الذهب", f: () => alert("لا يوجد مدخرات حالياً") }
-                ]
-            },
-            'guild': {
-                name: "سيد النقابة (المركز)",
-                dialog: "المهام هنا صعبة.. لا يقبلها إلا من يمتلك جرأة الشياطين. هل أنت جاهز؟",
-                actions: [
-                    { t: "طلب مهمة صيد", f: () => alert("تم قبول مهمة قتل العناكب!") },
-                    { t: "رتب المغامرين", f: () => alert("رتبتك الحالية: برونز") }
-                ]
-            },
-            'market': {
-                name: "التاجر الجوال",
-                dialog: "لدي مهارات نادرة.. هل سمعت عن 'الشق الأسود'؟ إنها مهارة تفتك بالخصوم.",
-                actions: [
-                    { t: "شراء مهارة (50 ذهب)", f: () => manageGold(-50) },
-                    { t: "بيع ممتلكات", f: () => alert("حقيبتك فارغة") }
-                ]
-            }
-        };
+        let state = { char: "", gold: 100, bank: 0, hp: 1000 };
+        const PASS = { "ديابلو": "123", "ريمورو": "456" };
 
         function login() {
-            const char = document.getElementById('char-select').value;
-            const pass = document.getElementById('pass-field').value;
-            if(PASS[char] === pass) {
-                gameState.char = char;
-                document.getElementById('p-char').innerText = char;
+            const c = document.getElementById('char-select').value;
+            const p = document.getElementById('pass-field').value;
+            if(PASS[c] === p) {
+                state.char = c;
                 updateUI();
-                switchScreen('map-screen');
-            } else { alert("رمز الدخول غير صحيح!"); }
+                showMap();
+            } else { alert("كلمة السر خاطئة!"); }
         }
 
-        function enter(placeId) {
-            const data = WORLD_DATA[placeId] || { name: "مكان غامض", dialog: "لا يوجد أحد هنا حالياً..", actions: [] };
-            document.getElementById('npc-name').innerText = data.name;
-            document.getElementById('npc-dialog').innerText = data.dialog;
-            
-            const actionsDiv = document.getElementById('npc-actions');
-            actionsDiv.innerHTML = "";
-            data.actions.forEach(act => {
-                const b = document.createElement('button');
-                b.className = "act-btn";
-                b.innerText = act.t;
-                b.onclick = act.f;
-                actionsDiv.appendChild(b);
-            });
+        function openNPC(type) {
+            const name = document.getElementById('npc-name');
+            const dial = document.getElementById('npc-dialog');
+            const acts = document.getElementById('npc-actions');
+            acts.innerHTML = "";
+
+            if(type === 'bank') {
+                name.innerText = "خزنة البنك الملكي";
+                dial.innerText = `رصيدك الحالي في الخزنة: ${state.bank} ذهبة. ماذا تريد أن تفعل؟`;
+                addBtn(acts, "إيداع 50 ذهبة", () => deposit(50));
+                addBtn(acts, "سحب كل المدخرات", () => withdraw());
+            } 
+            else if(type === 'battle') {
+                name.innerText = "منطقة الوحوش";
+                dial.innerText = "ظهر 'عنكبوت الهاوية'! إنه يحرس كنوزاً صغيرة.";
+                addBtn(acts, "هجوم: نهاية العالم (500 ضرر)", () => fightEnemy(500), true);
+            }
+            else if(type === 'guild') {
+                name.innerText = "نقابة الأبطال";
+                dial.innerText = "أهلاً بك يا ديابلو في المركز. هل تبحث عن عمل؟";
+                addBtn(acts, "طلب مهمة (قريباً)", () => alert("المهمات تحت الإنشاء"));
+            }
             switchScreen('npc-screen');
         }
 
-        function manageGold(amount) {
-            if(gameState.gold + amount >= 0) {
-                gameState.gold += amount;
+        // دالة إصلاح البنك
+        function deposit(amt) {
+            if(state.gold >= amt) {
+                state.gold -= amt;
+                state.bank += amt;
                 updateUI();
-                alert("تم تحديث الرصيد!");
-            } else { alert("الذهب غير كافٍ!"); }
+                openNPC('bank'); // تحديث الشاشة لرؤية الرقم الجديد
+            } else { alert("ليس لديك ذهب كافٍ!"); }
         }
 
-        function updateUI() { document.getElementById('p-gold').innerText = gameState.gold; }
+        function withdraw() {
+            if(state.bank > 0) {
+                state.gold += state.bank;
+                state.bank = 0;
+                updateUI();
+                openNPC('bank');
+            } else { alert("الخزنة فارغة فعلاً!"); }
+        }
+
+        // نظام الوحوش والقتال
+        function fightEnemy(dmg) {
+            let loot = Math.floor(Math.random() * 50) + 10;
+            state.gold += loot;
+            updateUI();
+            alert(`لقد سحقت الوحش بمهارة نهاية العالم! حصلت على ${loot} ذهبة.`);
+            showMap();
+        }
+
+        function addBtn(parent, text, func, isRed = false) {
+            const b = document.createElement('button');
+            b.className = isRed ? "btn btn-red" : "btn";
+            b.innerText = text;
+            b.onclick = func;
+            parent.appendChild(b);
+        }
+
+        function updateUI() {
+            document.getElementById('st-char').innerText = state.char;
+            document.getElementById('st-gold').innerText = state.gold;
+            document.getElementById('st-bank').innerText = state.bank;
+        }
+
         function showMap() { switchScreen('map-screen'); }
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -174,3 +161,4 @@
     </script>
 </body>
 </html>
+
