@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legends System - Pro RPG</title>
+    <title>Legends System - Stealth Edition</title>
     <style>
-        :root { --gold: #ffd700; --red: #ff4d4d; --bg: #050505; --panel: #1a1a1a; }
+        :root { --gold: #ffd700; --red: #ff4d4d; --bg: #050505; }
         body { background: var(--bg); color: #e0e0e0; font-family: sans-serif; margin: 0; text-align: center; }
         .screen { display: none; padding: 20px; animation: fadeIn 0.4s; }
         .active { display: block; }
@@ -15,21 +15,22 @@
         .status-header { background: #111; padding: 15px; border-bottom: 3px solid var(--gold); display: flex; justify-content: space-around; position: sticky; top: 0; z-index: 1000; }
         .stat-val { color: var(--gold); font-weight: bold; }
 
-        /* الخريطة */
+        /* الخريطة والدوائر */
         .map-frame { position: relative; display: inline-block; margin-top: 20px; border: 3px solid #333; line-height: 0; }
         .map-img { width: 100%; max-width: 850px; height: auto; border-radius: 10px; }
-        .node { position: absolute; width: 11%; height: 11%; border: 3px solid var(--gold); border-radius: 50%; background: rgba(0,0,0,0.5); cursor: pointer; transform: translate(-50%, -50%); z-index: 10; }
-        .nc { top: 50%; left: 50%; } .n1 { top: 20%; left: 50%; } .n2 { top: 30%; left: 78%; } .n3 { top: 58%; left: 88%; }
-
-        /* واجهة القتال */
-        .battle-view { display: flex; justify-content: space-around; margin: 20px 0; background: #111; padding: 20px; border: 1px solid #444; }
-        .hp-bar { width: 100%; background: #333; height: 10px; margin-top: 5px; border: 1px solid #555; }
-        .hp-fill { background: #00ff00; height: 100%; width: 100%; transition: 0.4s; }
+        .node { position: absolute; width: 10%; height: 10%; border: 2px solid var(--gold); border-radius: 50%; background: rgba(0,0,0,0.5); cursor: pointer; transform: translate(-50%, -50%); z-index: 10; }
         
-        /* الأزرار */
+        /* التوزيع (7 حول 1) */
+        .nc { top: 50%; left: 50%; } .n1 { top: 20%; left: 50%; } .n2 { top: 30%; left: 78%; } .n3 { top: 58%; left: 88%; }
+        .n4 { top: 82%; left: 68%; } .n5 { top: 82%; left: 32%; } .n6 { top: 58%; left: 12%; } .n7 { top: 30%; left: 22%; }
+
+        /* القتال */
+        .battle-ui { display: flex; justify-content: space-between; background: #111; padding: 15px; border: 1px solid #444; margin-top: 10px; }
+        .hp-bar { width: 100%; background: #333; height: 12px; border: 1px solid #555; position: relative; }
+        .hp-fill { background: #00ff00; height: 100%; transition: 0.5s; width: 100%; }
         .btn { background: #222; color: white; border: 1px solid var(--gold); padding: 12px; cursor: pointer; border-radius: 8px; width: 100%; margin: 5px 0; font-weight: bold; }
         .btn:hover { background: var(--gold); color: black; }
-        .log-box { background: #000; color: #0f0; padding: 10px; height: 80px; overflow-y: auto; font-size: 14px; text-align: right; border: 1px solid #333; }
+        .log { background: #000; color: #0f0; padding: 10px; height: 60px; overflow-y: auto; font-size: 13px; border: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -37,127 +38,130 @@
     <div id="login-screen" class="screen active">
         <div style="margin-top: 80px; display: inline-block; background: #111; padding: 30px; border: 2px solid var(--gold); border-radius: 15px;">
             <h2 style="color: var(--gold);">Legends System</h2>
-            <select id="char-select"><option value="ديابلو">ديابلو</option></select>
-            <input type="password" id="pass-field" placeholder="كلمة السر (123)">
-            <button class="btn" onclick="login()">دخول</button>
+            <select id="char-select"><option value="Diablo">ديابلو</option></select>
+            <input type="password" id="pass-field" placeholder="رمز الدخول السري">
+            <button class="btn" onclick="auth()">تأكيد الهوية</button>
         </div>
     </div>
 
     <div id="map-screen" class="screen">
         <div class="status-header">
-            <div>البطل: <span id="st-char" class="stat-val"></span></div>
+            <div>البطل: <span id="st-char" class="stat-val">ديابلو</span></div>
             <div>HP: <span id="st-hp" class="stat-val">1000</span></div>
-            <div>الذهب: <span id="st-gold" class="stat-val"></span></div>
+            <div>الذهب: <span id="st-gold" class="stat-val">100</span></div>
         </div>
         <div class="map-frame">
             <img src="20260129_152721.jpg" class="map-img">
-            <div class="node n1" onclick="openBank()"></div> <div class="node n2" onclick="startBattle('غيوتارو المتمرد', 1500)"></div> <div class="node n3" onclick="openShop()"></div> </div>
-        <p>القمة: البنك | اليمين: القتال | أقصى اليمين: التاجر</p>
+            <div class="node n1" onclick="openNPC('bank')"></div>
+            <div class="node n2" onclick="startBattle('غيوتارو المتمرد', 1500)"></div>
+            <div class="node n3" onclick="openNPC('shop')"></div>
+            <div class="node nc" onclick="openNPC('guild')"></div>
+        </div>
     </div>
 
     <div id="battle-screen" class="screen">
-        <h2 style="color: var(--red);">ساحة المعركة</h2>
-        <div class="battle-view">
-            <div style="width: 40%;">
-                <h3>ديابلو</h3>
-                <div class="hp-bar"><div id="p-hp-fill" class="hp-fill"></div></div>
-                <p id="p-hp-text">1000/1000</p>
+        <h2 id="enemy-title" style="color: var(--red);">معركة مصيرية</h2>
+        <div class="battle-ui">
+            <div style="width: 45%;">
+                <span>ديابلو</span>
+                <div class="hp-bar"><div id="p-hp-bar" class="hp-fill"></div></div>
+                <small id="p-hp-txt">1000/1000</small>
             </div>
-            <div style="width: 40%;">
-                <h3 id="enemy-name">العدو</h3>
-                <div class="hp-bar"><div id="e-hp-fill" class="hp-fill" style="background: red;"></div></div>
-                <p id="e-hp-text">1500/1500</p>
+            <div style="width: 45%;">
+                <span id="e-name">الخصم</span>
+                <div class="hp-bar"><div id="e-hp-bar" class="hp-fill" style="background: red;"></div></div>
+                <small id="e-hp-txt">1500/1500</small>
             </div>
         </div>
-        <div id="battle-log" class="log-box">ابتدأت المعركة!</div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
-            <button class="btn" onclick="playerAttack('نهاية العالم', 350, 'ضربة لا تُصد')">نهاية العالم (هجوم)</button>
-            <button class="btn" onclick="playerShield()">حاجز الهاوية (تعزيز)</button>
-            <button class="btn" onclick="playerControl()">العالم الوهمي (تحكم)</button>
+        <div id="battle-log" class="log">بدأ القتال..</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px;">
+            <button class="btn" onclick="atk(350, 'نهاية العالم')">نهاية العالم</button>
+            <button class="btn" onclick="shield()">حاجز الهاوية</button>
+            <button class="btn" onclick="mindControl()">العالم الوهمي</button>
         </div>
     </div>
 
     <div id="npc-screen" class="screen">
-        <div style="max-width: 500px; margin: auto; background: #111; padding: 30px; border: 2px solid var(--gold); border-radius: 15px;">
+        <div style="max-width: 500px; margin: auto; background: #111; padding: 25px; border: 2px solid var(--gold); border-radius: 15px;">
             <h2 id="npc-title" style="color: var(--gold);"></h2>
             <p id="npc-msg"></p>
-            <div id="npc-actions"></div>
-            <button class="btn" onclick="showMap()" style="background: #333;">هروب</button>
+            <div id="npc-acts"></div>
+            <button class="btn" onclick="toMain()" style="background: #333; margin-top: 15px;">انسحاب</button>
         </div>
     </div>
 
     <script>
-        let p = { hp: 1000, maxHp: 1000, gold: 100, bank: 0, shield: false };
-        let e = { name: "", hp: 0, maxHp: 0 };
-        const PASS = { "ديابلو": "123" };
+        // الرمز مشفر (Base64) لتعقيد الوصول إليه
+        const _0x1a2b = "MTIz"; 
+        let p = { hp: 1000, gold: 100, bank: 0, prot: false };
+        let e = { name: "", hp: 0, mhp: 0 };
 
-        function login() { if(document.getElementById('pass-field').value === "123") showMap(); else alert("خاطئ!"); }
+        function auth() {
+            if (btoa(document.getElementById('pass-field').value) === _0x1a2b) {
+                toMain();
+            } else { alert("الهوية غير متطابقة!"); }
+        }
 
-        function showMap() {
-            document.getElementById('st-char').innerText = "ديابلو";
+        function toMain() {
             document.getElementById('st-gold').innerText = p.gold;
             document.getElementById('st-hp').innerText = p.hp;
-            document.getElementById('st-bank').innerText = p.bank;
-            switchScreen('map-screen');
+            switchS('map-screen');
         }
 
-        // --- نظام البنك ---
-        function openBank() {
-            setupNPC("الخازن الملكي", `رصيدك المخزن: ${p.bank} ذهبة.`);
-            addAct("إيداع 50 ذهبة", () => { if(p.gold >= 50){ p.gold-=50; p.bank+=50; openBank(); } });
-            addAct("سحب الكل", () => { p.gold+=p.bank; p.bank=0; openBank(); });
+        function openNPC(type) {
+            const t = document.getElementById('npc-title');
+            const m = document.getElementById('npc-msg');
+            const a = document.getElementById('npc-acts');
+            a.innerHTML = "";
+            
+            if(type === 'bank') {
+                t.innerText = "البنك المركزي";
+                m.innerText = `خزنتك: ${p.bank} ذهب.`;
+                createAct(a, "إيداع 50", () => { if(p.gold>=50){p.gold-=50; p.bank+=50; openNPC('bank');} });
+                createAct(a, "سحب الكل", () => { p.gold+=p.bank; p.bank=0; openNPC('bank'); });
+            } else if(type === 'shop') {
+                t.innerText = "التاجر السري";
+                m.innerText = "جرعة دم كاملة (100 ذهب)";
+                createAct(a, "شراء", () => { if(p.gold>=100){p.gold-=100; p.hp=1000; openNPC('shop');} });
+            }
+            switchS('npc-screen');
         }
 
-        // --- نظام التاجر ---
-        function openShop() {
-            setupNPC("التاجر الجوال", "لدي جرعات شفاء تزيد دمك بـ 300 مقابل 50 ذهبة.");
-            addAct("شراء جرعة (50 ذهب)", () => { if(p.gold >= 50){ p.gold-=50; p.hp = Math.min(1000, p.hp+300); openShop(); } });
-        }
-
-        // --- نظام القتال المتقدم ---
         function startBattle(name, hp) {
-            e.name = name; e.hp = hp; e.maxHp = hp;
-            document.getElementById('enemy-name').innerText = name;
-            updateBattleUI();
-            switchScreen('battle-screen');
+            e.name = name; e.hp = hp; e.mhp = hp;
+            document.getElementById('e-name').innerText = name;
+            upB();
+            switchS('battle-screen');
         }
 
-        function playerAttack(name, dmg, type) {
-            e.hp -= dmg;
-            log(`ديابلو استخدم ${name} (${type}) وسبب ${dmg} ضرر!`);
-            if(e.hp <= 0) return win();
-            setTimeout(enemyTurn, 1000);
+        function atk(d, n) {
+            e.hp -= d; log(`ديابلو استخدم ${n} وسبب ${d} ضرر!`);
+            if(e.hp <= 0) return victory();
+            setTimeout(eTurn, 800);
         }
 
-        function playerShield() {
-            p.shield = true;
-            log("ديابلو فعل حاجز الهاوية (تعزيز)! سيصد الهجمة القادمة.");
-            setTimeout(enemyTurn, 1000);
+        function shield() { p.prot = true; log("تفعيل حاجز الهاوية!"); setTimeout(eTurn, 800); }
+
+        function mindControl() {
+            let selfDmg = 200;
+            e.hp -= selfDmg;
+            log(`العالم الوهمي! الخصم يهاجم نفسه ويخسر ${selfDmg} HP!`);
+            if(e.hp <= 0) return victory();
+            setTimeout(eTurn, 800);
         }
 
-        function enemyTurn() {
-            let dmg = p.shield ? 0 : 150;
-            p.hp -= dmg;
-            p.shield = false;
-            log(dmg === 0 ? "العدو هجم ولكن الدرع صد الضرر!" : `${e.name} هجم وسبب لك ${dmg} ضرر!`);
-            updateBattleUI();
-            if(p.hp <= 0) alert("هزمت.. عد للتدريب!");
+        function eTurn() {
+            let d = p.prot ? 0 : 120;
+            p.hp -= d; p.prot = false;
+            log(d === 0 ? "تم صد الهجوم!" : `${e.name} أصابك بـ ${d} ضرر!`);
+            upB();
+            if(p.hp <= 0) { alert("سقط ديابلو.."); location.reload(); }
         }
 
-        function win() {
-            p.gold += 100; alert("انتصرت وحصلت على 100 ذهب!"); showMap();
-        }
+        function victory() { p.gold += 150; alert("نصر ساحق! +150 ذهب"); toMain(); }
 
-        function setupNPC(t, m) {
-            document.getElementById('npc-title').innerText = t;
-            document.getElementById('npc-msg').innerText = m;
-            document.getElementById('npc-actions').innerHTML = "";
-            switchScreen('npc-screen');
-        }
-
-        function addAct(t, f) {
-            let b = document.createElement('button'); b.className="btn"; b.innerText=t; b.onclick=f;
-            document.getElementById('npc-actions').appendChild(b);
+        function createAct(p, t, f) {
+            let b = document.createElement('button'); b.className="btn"; b.innerText=t; b.onclick=f; p.appendChild(b);
         }
 
         function log(m) {
@@ -166,14 +170,14 @@
             l.scrollTop = l.scrollHeight;
         }
 
-        function updateBattleUI() {
-            document.getElementById('p-hp-fill').style.width = (p.hp/p.maxHp*100)+"%";
-            document.getElementById('e-hp-fill').style.width = (e.hp/e.maxHp*100)+"%";
-            document.getElementById('p-hp-text').innerText = `${p.hp}/${p.maxHp}`;
-            document.getElementById('e-hp-text').innerText = `${e.hp}/${e.maxHp}`;
+        function upB() {
+            document.getElementById('p-hp-bar').style.width = (p.hp/10) + "%";
+            document.getElementById('e-hp-bar').style.width = (e.hp/e.mhp*100) + "%";
+            document.getElementById('p-hp-txt').innerText = p.hp + "/1000";
+            document.getElementById('e-hp-txt').innerText = e.hp + "/" + e.mhp;
         }
 
-        function switchScreen(id) {
+        function switchS(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
