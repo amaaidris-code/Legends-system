@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legends System - Secure Map</title>
+    <title>Legends System - RPG Engine</title>
     <style>
         :root { --gold: #ffd700; --red: #ff4d4d; --bg: #0a0a0a; }
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; text-align: center; overflow-x: hidden; }
@@ -14,26 +14,32 @@
         /* شاشة الدخول */
         .auth-container { background: #151515; padding: 30px; border: 2px solid var(--gold); display: inline-block; border-radius: 15px; margin-top: 50px; width: 300px; }
         input, select { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
-        .btn-gold { background: var(--gold); color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 8px; }
+        .btn-gold { background: var(--gold); color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 5px; }
 
-        /* الخريطة الدائرية (7 حول 1) */
+        /* الخريطة */
         .map-frame { position: relative; display: inline-block; margin-top: 20px; border: 3px solid #333; line-height: 0; }
         .map-img { width: 100%; max-width: 850px; height: auto; border-radius: 10px; }
-        .node { position: absolute; width: 11%; height: 11%; border: 3px solid var(--gold); border-radius: 50%; background: rgba(0, 0, 0, 0.7); cursor: pointer; transform: translate(-50%, -50%); transition: 0.3s; z-index: 10; }
+        .node { position: absolute; width: 11%; height: 11%; border: 3px solid var(--gold); border-radius: 50%; background: rgba(0, 0, 0, 0.5); cursor: pointer; transform: translate(-50%, -50%); transition: 0.3s; z-index: 10; }
         .node:hover { background: rgba(255, 215, 0, 0.4); transform: translate(-50%, -50%) scale(1.1); }
-        .node-center { top: 50%; left: 50%; border-color: var(--red); box-shadow: 0 0 15px var(--red); }
+        .node-center { top: 50%; left: 50%; border-color: var(--red); }
 
-        /* توزيع الـ 7 دوائر حول المركز */
+        /* توزيع الـ 7 دوائر */
         .n1 { top: 20%; left: 50%; } .n2 { top: 30%; left: 78%; } .n3 { top: 58%; left: 88%; }
         .n4 { top: 82%; left: 68%; } .n5 { top: 82%; left: 32%; } .n6 { top: 58%; left: 12%; }
         .n7 { top: 30%; left: 22%; }
+
+        /* شاشة الـ NPC */
+        .npc-box { background: #111; border: 2px solid var(--gold); border-radius: 15px; padding: 20px; max-width: 500px; margin: 20px auto; }
+        .npc-dialog { background: #222; padding: 15px; border-radius: 10px; margin: 15px 0; font-style: italic; color: #ddd; }
+        .choice-btn { background: #333; color: var(--gold); border: 1px solid var(--gold); padding: 10px; width: 100%; margin: 5px 0; cursor: pointer; border-radius: 5px; text-align: right; }
+        .choice-btn:hover { background: var(--gold); color: black; }
     </style>
 </head>
 <body>
 
     <div id="login-screen" class="screen active">
         <div class="auth-container">
-            <h2 style="color: var(--gold);">نظام الأساطير</h2>
+            <h2 style="color: var(--gold);">Legends System</h2>
             <select id="char-list">
                 <option value="ديابلو">ديابلو</option>
                 <option value="ريمورو">ريمورو</option>
@@ -45,33 +51,111 @@
     </div>
 
     <div id="map-screen" class="screen">
-        <h3 style="color: var(--gold);">خريطة العالم الجديدة</h3>
+        <div style="background: #111; padding: 10px; border-bottom: 2px solid var(--gold); margin-bottom: 10px;">
+            ذهبك الحالي: <span id="gold-count" style="color: #00ff00;">100</span>
+        </div>
         <div class="map-frame">
             <img src="20260129_152721.jpg" class="map-img">
-            <div class="node node-center" onclick="visit('المركز الملكي')"></div>
-            <div class="node n1" onclick="visit('الموقع الشمالي')"></div>
-            <div class="node n2" onclick="visit('الموقع الشرقي العلوي')"></div>
-            <div class="node n3" onclick="visit('الموقع الشرقي السفلي')"></div>
-            <div class="node n4" onclick="visit('الموقع الجنوبي الشرقي')"></div>
-            <div class="node n5" onclick="visit('الموقع الجنوبي الغربي')"></div>
-            <div class="node n6" onclick="visit('الموقع الغربي السفلي')"></div>
-            <div class="node n7" onclick="visit('الموقع الغربي العلوي')"></div>
+            <div class="node node-center" onclick="goToNPC('guild')"></div>
+            <div class="node n1" onclick="goToNPC('bank')"></div>
+            <div class="node n2" onclick="goToNPC('training')"></div>
+            <div class="node n3" onclick="goToNPC('shop')"></div>
+            <div class="node n4" onclick="goToNPC('tavern')"></div>
+            <div class="node n5" onclick="goToNPC('library')"></div>
+            <div class="node n6" onclick="goToNPC('secret')"></div>
+            <div class="node n7" onclick="goToNPC('healer')"></div>
+        </div>
+    </div>
+
+    <div id="npc-screen" class="screen">
+        <div class="npc-box">
+            <h2 id="npc-name" style="color: var(--gold);"></h2>
+            <div id="npc-dialog" class="npc-dialog"></div>
+            <div id="npc-choices"></div>
+            <button class="btn-gold" style="background: #444; color: white;" onclick="backToMap()">الهروب إلى الخريطة</button>
         </div>
     </div>
 
     <script>
+        let myGold = 100;
+        let bankGold = 0;
         const SECRETS = { "ديابلو": "123", "ريمورو": "456", "لوفي": "789" };
+
+        const NPC_DATA = {
+            'bank': {
+                name: "الرجل الذهبي (البنك)",
+                dialog: "أهلاً بك في خزنة الأساطير. هل تريد الحفاظ على ثروتك بعيداً عن أيدي اللصوص؟",
+                choices: [
+                    { text: "إيداع 50 ذهبة", action: () => deposit(50) },
+                    { text: "سحب الذهب المخزن", action: () => withdraw() }
+                ]
+            },
+            'guild': {
+                name: "سيد النقابة",
+                dialog: "المركز يراقب كل شيء.. هل تبحث عن مهمة انتحارية جديدة أم جئت للدردشة؟",
+                choices: [
+                    { text: "البحث عن مهمة (قريباً)", action: () => alert("المهمات ستفتح في التحديث القادم!") }
+                ]
+            },
+            'training': {
+                name: "المدرب الصارم",
+                dialog: "عضلاتك ضعيفة! التدريب هنا يتطلب صبراً.. هل تريد البدء؟",
+                choices: [
+                    { text: "تدريب مكثف (تطوير مهارات)", action: () => alert("جاري تجهيز ساحة التدريب...") }
+                ]
+            }
+            // يمكنك إضافة باقي الـ NPCs هنا بنفس النمط
+        };
 
         function validate() {
             const char = document.getElementById('char-list').value;
             const pass = document.getElementById('pass-field').value;
             if(SECRETS[char] === pass) {
-                document.getElementById('login-screen').classList.remove('active');
-                document.getElementById('map-screen').classList.add('active');
+                showScreen('map-screen');
             } else { alert("كلمة سر خاطئة!"); }
         }
 
-        function visit(name) { alert("لقد وصلت إلى: " + name); }
+        function goToNPC(id) {
+            const data = NPC_DATA[id] || { name: "شخصية غامضة", dialog: "هذه الشخصية مشغولة الآن.. عد لاحقاً.", choices: [] };
+            document.getElementById('npc-name').innerText = data.name;
+            document.getElementById('npc-dialog').innerText = data.dialog;
+            
+            const choiceContainer = document.getElementById('npc-choices');
+            choiceContainer.innerHTML = "";
+            data.choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = "choice-btn";
+                btn.innerText = c.text;
+                btn.onclick = c.action;
+                choiceContainer.appendChild(btn);
+            });
+            showScreen('npc-screen');
+        }
+
+        function deposit(amount) {
+            if(myGold >= amount) {
+                myGold -= amount; bankGold += amount;
+                updateGold();
+                alert(`تم إيداع ${amount} ذهبة بنجاح!`);
+                goToNPC('bank');
+            } else { alert("لا تملك ذهباً كافياً!"); }
+        }
+
+        function withdraw() {
+            if(bankGold > 0) {
+                myGold += bankGold; bankGold = 0;
+                updateGold();
+                alert("تم سحب جميع أموالك!");
+                goToNPC('bank');
+            } else { alert("خزنتك فارغة!"); }
+        }
+
+        function updateGold() { document.getElementById('gold-count').innerText = myGold; }
+        function backToMap() { showScreen('map-screen'); }
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
     </script>
 </body>
 </html>
