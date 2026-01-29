@@ -2,209 +2,324 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Diablo — Ultimate Professional Engine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diablo – Sovereign Final</title>
 
 <style>
 :root{
---gold:#ffd700;--red:#ff3b3b;--blue:#00cfff;
---bg:#020202;--panel:#0b0b0b;
---radius:16px;
+ --gold:#ffd700;
+ --red:#ff2e2e;
+ --bg:#050505;
+ --panel:#0e0e0e;
+ --card:#111;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:#fff;font-family:Tahoma,Arial;height:100vh;overflow:hidden}
-.layer{display:none;position:absolute;inset:0}
-.layer.active{display:flex;flex-direction:column}
-.btn{background:var(--gold);color:#000;font-weight:900;border:none;
-padding:12px 22px;border-radius:var(--radius);cursor:pointer}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.panel{background:var(--panel);border-radius:var(--radius);padding:20px}
-#auth{justify-content:center;align-items:center}
-#mapHeader{display:flex;justify-content:space-between;padding:15px;border-bottom:2px solid var(--gold)}
-.map{flex:1;display:flex;justify-content:center;align-items:center}
-.node{width:26px;height:26px;border-radius:50%;border:2px solid var(--gold);
-position:absolute;cursor:pointer}
-.node.boss{border-color:var(--red);width:32px;height:32px}
-#battle{gap:10px}
-.fighters{display:flex;justify-content:space-around;align-items:center}
-.avatar{width:120px;height:120px;border-radius:50%;border:4px solid var(--gold);overflow:hidden}
-.bar{width:140px;height:18px;background:#111;border-radius:9px;overflow:hidden;margin-top:8px}
-.fill{height:100%;transition:.4s}
-#skills{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:10px}
-#log{height:140px;overflow-y:auto;font-size:13px;background:#050505;padding:10px}
-#skillTree{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.skillNode{border:2px solid #333;padding:10px;border-radius:12px;text-align:center;cursor:pointer}
-.skillNode.unlocked{border-color:var(--gold);background:#111}
+
+*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Tahoma}
+body{background:var(--bg);color:#fff;height:100vh;overflow:hidden}
+
+/* ===== Layers ===== */
+.layer{position:absolute;inset:0;display:none;flex-direction:column}
+.layer.active{display:flex}
+
+/* ===== Top Bar ===== */
+.topbar{
+ display:flex;justify-content:space-between;align-items:center;
+ padding:12px 18px;
+ border-bottom:2px solid var(--gold);
+ background:#000;
+}
+.topbar span{font-weight:900}
+.gold{color:var(--gold)}
+
+/* ===== Map ===== */
+.map-wrap{
+ flex:1;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ background:#000;
+}
+.map{
+ position:relative;
+ width:95%;
+ max-width:900px;
+ aspect-ratio:16/9;
+ border:3px solid var(--gold);
+ border-radius:20px;
+ overflow:hidden;
+}
+.map img{
+ width:100%;
+ height:100%;
+ object-fit:cover;
+}
+.map-node{
+ position:absolute;
+ width:28px;height:28px;
+ border:3px solid var(--red);
+ border-radius:50%;
+ background:#000;
+ cursor:pointer;
+ top:55%;
+ left:70%;
+}
+
+/* ===== Battle ===== */
+.battle{
+ flex:1;
+ display:flex;
+ background:linear-gradient(180deg,#050505,#200505);
+ position:relative;
+}
+
+/* ===== Character Card ===== */
+.char{
+ width:40%;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:12px;
+}
+.char img{
+ width:170px;
+ height:170px;
+ object-fit:cover;
+ border-radius:12px;
+ border:4px solid var(--gold);
+}
+.enemy img{border-color:var(--red)}
+
+.stat{
+ background:#000;
+ border:2px solid var(--gold);
+ padding:6px 14px;
+ border-radius:10px;
+ font-weight:900;
+}
+.enemy .stat{border-color:var(--red)}
+
+.vs{
+ font-size:42px;
+ font-weight:900;
+ color:var(--gold);
+ align-self:center;
+}
+
+/* ===== Skill Panel ===== */
+.skill-panel{
+ position:absolute;
+ top:0;
+ left:-340px;
+ width:340px;
+ height:100%;
+ background:var(--panel);
+ border-right:3px solid var(--gold);
+ transition:.5s;
+ padding:20px;
+ z-index:10;
+}
+.skill-panel.open{left:0}
+
+.skill-handle{
+ position:absolute;
+ right:-45px;
+ top:40%;
+ width:45px;
+ height:120px;
+ background:var(--gold);
+ color:#000;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ font-weight:900;
+ writing-mode:vertical-rl;
+ cursor:pointer;
+ border-radius:0 12px 12px 0;
+}
+
+.skill{
+ background:var(--card);
+ border:1px solid #333;
+ border-radius:12px;
+ padding:14px;
+ margin-bottom:14px;
+}
+.skill h4{color:var(--gold);margin-bottom:6px}
+.skill p{font-size:12px;color:#aaa;margin-bottom:10px}
+.skill button{
+ width:100%;
+ padding:10px;
+ background:var(--gold);
+ border:none;
+ border-radius:8px;
+ font-weight:900;
+ cursor:pointer;
+}
+.skill button:disabled{
+ background:#333;
+ color:#777;
+ cursor:not-allowed;
+}
+
+/* ===== Log ===== */
+.log{
+ height:120px;
+ background:#000;
+ border-top:2px solid #222;
+ padding:10px;
+ overflow:auto;
+ font-size:13px;
+ color:#0f0;
+}
 </style>
 </head>
-
 <body>
 
-<!-- AUTH -->
-<div id="auth" class="layer active">
-  <div class="panel">
-    <h2 style="text-align:center;color:var(--gold)">DIABLO</h2>
-    <input id="key" type="password" placeholder="KEY"
-      style="width:100%;margin:15px 0;padding:12px;text-align:center">
-    <button class="btn" style="width:100%" onclick="Engine.login()">START</button>
-  </div>
-</div>
-
-<!-- MAP -->
-<div id="map" class="layer">
-  <div id="mapHeader">
-    <div>الرتبة: <b id="rank"></b></div>
-    <div>💰 <span id="gold"></span></div>
-  </div>
+<!-- ===== MAP ===== -->
+<div id="mapView" class="layer active">
+ <div class="topbar">
+  <span class="gold">💰 <span id="gold">100</span></span>
+  <span>الرتبة: <b id="rank">مبتدئ</b></span>
+ </div>
+ <div class="map-wrap">
   <div class="map">
-    <div class="node" style="top:40%;left:30%" onclick="Engine.startBattle('normal')"></div>
-    <div class="node boss" style="top:55%;left:65%" onclick="Engine.startBattle('boss')"></div>
+   <img src="20260129_152721.jpg">
+   <div class="map-node" onclick="Engine.startBattle()"></div>
   </div>
+ </div>
 </div>
 
-<!-- BATTLE -->
-<div id="battle" class="layer">
-  <div class="fighters">
-    <div>
-      <div class="avatar"><img src="" width="100%" height="100%"></div>
-      <div class="bar"><div id="php" class="fill" style="background:#0f0"></div></div>
-    </div>
-    <div style="font-size:32px">VS</div>
-    <div>
-      <div class="avatar" style="border-color:var(--red)"></div>
-      <div class="bar"><div id="ehp" class="fill" style="background:#f00"></div></div>
-    </div>
+<!-- ===== BATTLE ===== -->
+<div id="battleView" class="layer">
+
+ <div class="skill-panel" id="skillsPanel">
+  <div class="skill-handle" onclick="Engine.toggleSkills()">مهارات</div>
+  <div id="skillsBox"></div>
+ </div>
+
+ <div class="battle">
+  <div class="char">
+   <img src="p.jpg">
+   <div class="stat">ديابلو</div>
+   <div class="stat">HP: <span id="php">1000</span></div>
   </div>
 
-  <div id="skills"></div>
-  <div id="log"></div>
+  <div class="vs">VS</div>
 
-  <div style="text-align:center">
-    <button class="btn" onclick="Engine.leaveBattle()">انسحاب</button>
+  <div class="char enemy">
+   <img src="e.jpg">
+   <div class="stat">غيوتارو</div>
+   <div class="stat">HP: <span id="ehp">1500</span></div>
   </div>
-</div>
+ </div>
 
-<!-- SKILL TREE -->
-<div id="tree" class="layer">
-  <div class="panel">
-    <h3>شجرة المهارات</h3>
-    <div id="skillTree"></div>
-    <br>
-    <button class="btn" onclick="Engine.show('map')">رجوع</button>
-  </div>
+ <div class="log" id="log"></div>
 </div>
 
 <script>
 const Engine={
-state:{
- rank:"مبتدئ",
- gold:100,
- hp:1000,mhp:1000,
- enemy:{hp:0,mhp:0},
- skills:[
-  {id:"slash",name:"ضربة قاطعة",dmg:180,cd:0,max:2,unlocked:true},
-  {id:"fire",name:"نار الجحيم",dmg:320,cd:0,max:4,unlocked:false},
-  {id:"heal",name:"شفاء",heal:250,cd:0,max:5,unlocked:false}
- ]
-},
+ state:{
+  gold:100,
+  rank:"مبتدئ",
+  hp:1000,
+  enemyHp:1500,
+  skills:[
+   {id:"atk",name:"نهاية العالم",desc:"ضربة ساحقة تخترق الدفاع",dmg:400,cd:0,max:3},
+   {id:"mind",name:"التحكم بالعقول",desc:"إجبار العدو على إيذاء نفسه",dmg:250,cd:0,max:4},
+   {id:"abs",name:"ماندالا الدم",desc:"امتصاص طاقة العدو",dmg:200,heal:200,cd:0,max:5}
+  ]
+ },
 
-login(){
- if(key.value!=="123")return;
- this.load();this.show("map");this.ui();
-},
+ startBattle(){
+  this.state.hp=1000;
+  this.state.enemyHp=1500;
+  this.state.skills.forEach(s=>s.cd=0);
+  this.switch("battleView");
+  this.renderSkills();
+  this.log("⚔️ بدأت المعركة");
+  this.update();
+ },
 
-show(id){
- document.querySelectorAll(".layer").forEach(l=>l.classList.remove("active"));
- document.getElementById(id).classList.add("active");
- if(id==="tree")this.renderTree();
-},
+ toggleSkills(){
+  document.getElementById("skillsPanel").classList.toggle("open");
+ },
 
-ui(){
- rank.textContent=this.state.rank;
- gold.textContent=this.state.gold;
- php.style.width=this.state.hp/this.state.mhp*100+"%";
- ehp.style.width=this.state.enemy.hp/this.state.enemy.mhp*100+"%";
-},
+ renderSkills(){
+  const box=document.getElementById("skillsBox");
+  box.innerHTML="";
+  this.state.skills.forEach(s=>{
+   const d=document.createElement("div");
+   d.className="skill";
+   d.innerHTML=`
+    <h4>${s.name}</h4>
+    <p>${s.desc}</p>
+    <button ${s.cd>0?"disabled":""}
+     onclick="Engine.useSkill('${s.id}')">
+     ${s.cd>0?"انتظار "+s.cd:"استخدام"}
+    </button>`;
+   box.appendChild(d);
+  });
+ },
 
-startBattle(type){
- this.state.enemy.mhp= type==="boss"?2200:1400;
- this.state.enemy.hp=this.state.enemy.mhp;
- this.show("battle");
- this.log("⚔️ بدأ القتال");
- this.renderSkills();
- this.ui();
-},
+ useSkill(id){
+  const s=this.state.skills.find(x=>x.id===id);
+  if(!s||s.cd>0)return;
 
-renderSkills(){
- skills.innerHTML="";
- this.state.skills.forEach(s=>{
-  if(!s.unlocked)return;
-  const b=document.createElement("button");
-  b.className="btn";
-  b.textContent=`${s.name} (${s.cd})`;
-  b.disabled=s.cd>0;
-  b.onclick=()=>this.useSkill(s.id);
-  skills.appendChild(b);
- });
-},
+  this.state.enemyHp-=s.dmg;
+  if(s.heal)this.state.hp=Math.min(1000,this.state.hp+s.heal);
+  s.cd=s.max;
+  this.log("🔥 استخدمت "+s.name);
 
-useSkill(id){
- const s=this.state.skills.find(x=>x.id===id);
- if(!s||s.cd>0)return;
- if(s.dmg)this.state.enemy.hp-=s.dmg;
- if(s.heal)this.state.hp=Math.min(this.state.mhp,this.state.hp+s.heal);
- s.cd=s.max;
- this.log("✨ "+s.name);
- if(this.state.enemy.hp<=0)return this.win();
- this.enemyTurn();this.tick();this.ui();this.renderSkills();
-},
+  if(this.state.enemyHp<=0){
+   this.win();
+   return;
+  }
 
-enemyTurn(){
- const dmg=160;
- this.state.hp-=dmg;
- this.log("👹 العدو ضربك "+dmg);
- if(this.state.hp<=0)this.lose();
-},
+  setTimeout(()=>this.enemyTurn(),800);
+  this.tick();
+  this.update();
+  this.renderSkills();
+ },
 
-tick(){
- this.state.skills.forEach(s=>{if(s.cd>0)s.cd--});
-},
+ enemyTurn(){
+  this.state.hp-=180;
+  this.log("☠️ العدو هاجم");
+  if(this.state.hp<=0){
+   alert("هُزمت");
+   this.switch("mapView");
+  }
+  this.update();
+ },
 
-win(){
- this.log("🏆 نصر!");
- this.state.gold+=300;
- if(this.state.gold>=400)this.state.skills[1].unlocked=true;
- if(this.state.gold>=700)this.state.skills[2].unlocked=true;
- this.save();this.leaveBattle();
-},
+ tick(){
+  this.state.skills.forEach(s=>{if(s.cd>0)s.cd--});
+ },
 
-lose(){
- this.log("💀 هزيمة");
- this.state.hp=this.state.mhp;
- this.leaveBattle();
-},
+ win(){
+  this.log("🏆 انتصار!");
+  this.state.gold+=500;
+  this.state.rank="محارب جحيم";
+  this.update();
+  setTimeout(()=>this.switch("mapView"),1200);
+ },
 
-leaveBattle(){
- this.show("map");this.ui();
-},
+ update(){
+  php.textContent=this.state.hp;
+  ehp.textContent=this.state.enemyHp;
+  gold.textContent=this.state.gold;
+  rank.textContent=this.state.rank;
+ },
 
-renderTree(){
- skillTree.innerHTML="";
- this.state.skills.forEach(s=>{
-  const d=document.createElement("div");
-  d.className="skillNode "+(s.unlocked?"unlocked":"");
-  d.textContent=s.name;
-  skillTree.appendChild(d);
- });
-},
+ log(t){
+  log.innerHTML=`<div>${t}</div>`+log.innerHTML;
+ },
 
-log(t){
- log.innerHTML="<div>"+t+"</div>"+log.innerHTML;
-},
-
-save(){localStorage.setItem("diablo",JSON.stringify(this.state))},
-load(){const d=localStorage.getItem("diablo");if(d)this.state=JSON.parse(d)}
-};
+ switch(id){
+  document.querySelectorAll(".layer").forEach(l=>l.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+ }
+}
 </script>
 </body>
 </html>
