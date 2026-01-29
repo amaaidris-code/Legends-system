@@ -3,205 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legends - Cinematic Battle</title>
+    <title>Diablo vs Gyutaro: Ultimate</title>
     <style>
-        :root { --gold: #ffd700; --red: #ff4d4d; --bg: #050505; }
-        body { background: var(--bg); color: white; font-family: 'Cairo', sans-serif; margin: 0; overflow: hidden; }
+        :root { --gold: #ffd700; --red: #ff3e3e; --bg: #030303; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; overflow: hidden; }
 
-        /* حاكم الشاشات - الانتقال السينمائي */
-        #game-container { display: flex; width: 300vw; transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1); }
-        .screen { width: 100vw; height: 100vh; position: relative; flex-shrink: 0; }
+        /* حاوية السينما */
+        #viewport { display: flex; width: 300vw; height: 100vh; transition: transform 0.8s cubic-bezier(0.85, 0, 0.15, 1); }
+        .stage { width: 100vw; height: 100vh; flex-shrink: 0; position: relative; }
 
         /* السهم الجانبي المطور */
-        .side-panel { 
-            position: fixed; right: -220px; top: 100px; width: 200px; 
-            background: rgba(15,15,15,0.95); border: 2px solid var(--gold); 
-            transition: 0.4s ease; z-index: 2000; padding: 15px; border-radius: 15px 0 0 15px;
+        #side-panel { 
+            position: fixed; right: -280px; top: 10%; width: 260px; height: 70%;
+            background: linear-gradient(180deg, #1a1a1a, #0a0a0a); border: 2px solid var(--gold); 
+            z-index: 5000; transition: 0.4s; border-radius: 20px 0 0 20px; box-shadow: -10px 0 30px rgba(0,0,0,0.8);
         }
-        .side-panel.open { right: 0; }
-        .side-arrow { 
-            position: absolute; left: -35px; top: 10px; width: 35px; height: 80px; 
-            background: var(--gold); color: black; cursor: pointer; 
-            border-radius: 10px 0 0 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;
+        #side-panel.open { right: 0; }
+        .side-btn { 
+            position: absolute; left: -45px; top: 20px; width: 45px; height: 120px; 
+            background: var(--gold); color: #000; cursor: pointer; border-radius: 15px 0 0 15px;
+            display: flex; align-items: center; justify-content: center; font-weight: bold; writing-mode: vertical-rl;
         }
 
         /* الخريطة والدوائر المصغرة */
-        .map-frame { position: relative; display: inline-block; margin-top: 20px; border: 3px solid #222; }
-        .map-img { width: 100%; max-width: 800px; border-radius: 10px; }
-        .node { 
-            position: absolute; width: 35px; height: 35px; /* تصغير الدوائر */
-            border: 2px solid var(--gold); border-radius: 50%; 
-            background: rgba(0,0,0,0.6); cursor: pointer; transform: translate(-50%, -50%); 
-            transition: 0.3s; box-shadow: 0 0 10px var(--gold);
+        .map-layer { display: flex; justify-content: center; align-items: center; height: 100%; }
+        .map-box { position: relative; border: 4px solid #222; border-radius: 20px; overflow: hidden; }
+        .map-img { max-width: 85vw; max-height: 80vh; display: block; }
+        .dot { 
+            position: absolute; width: 18px; height: 18px; background: rgba(0,0,0,0.8); 
+            border: 2px solid var(--gold); border-radius: 50%; cursor: pointer; 
+            transform: translate(-50%, -50%); transition: 0.3s; box-shadow: 0 0 10px var(--gold);
         }
-        .node:hover { transform: translate(-50%, -50%) scale(1.3); background: var(--gold); }
+        .dot:hover { transform: translate(-50%, -50%) scale(1.5); background: var(--gold); }
 
-        /* واجهة القتال السينمائية */
-        .battle-arena { display: flex; justify-content: space-around; align-items: center; height: 60%; padding-top: 50px; }
-        .fighter { text-align: center; width: 35%; transition: 0.5s; }
-        .fighter img { width: 150px; height: 150px; border-radius: 50%; border: 3px solid var(--gold); box-shadow: 0 0 20px var(--gold); }
-        .enemy img { border-color: var(--red); box-shadow: 0 0 20px var(--red); }
+        /* واجهة المعركة */
+        .battle-ui { display: flex; flex-direction: column; height: 100%; background: radial-gradient(circle, #1a1a1a, #000); }
+        .fighters { flex: 1; display: flex; justify-content: space-around; align-items: center; padding: 20px; }
+        .avatar { text-align: center; width: 40%; }
+        .avatar img { width: 180px; height: 180px; border-radius: 50%; border: 4px solid var(--gold); filter: drop-shadow(0 0 15px var(--gold)); }
+        .avatar.enemy img { border-color: var(--red); filter: drop-shadow(0 0 15px var(--red)); }
+
+        /* أشرطة الـ HP */
+        .hp-cont { background: #222; height: 25px; border-radius: 15px; margin: 15px 0; border: 2px solid #444; overflow: hidden; position: relative; }
+        .hp-bar { height: 100%; width: 100%; transition: 0.6s; }
+        .p-fill { background: linear-gradient(90deg, #00ff00, #006600); }
+        .e-fill { background: linear-gradient(90deg, #ff0000, #660000); }
+        .hp-txt { position: absolute; width: 100%; text-align: center; top: 2px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
+
+        /* أزرار المهارات (داخل السهم) */
+        .skill-box { padding: 20px; }
+        .s-btn { 
+            width: 100%; padding: 15px; margin: 10px 0; background: #222; color: white; 
+            border: 1px solid var(--gold); border-radius: 10px; cursor: pointer; font-weight: bold;
+        }
+        .s-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444; }
         
-        .hp-bar { width: 100%; background: #333; height: 15px; border-radius: 10px; margin-top: 10px; overflow: hidden; border: 1px solid #555; }
-        .hp-fill { height: 100%; width: 100%; transition: 0.5s; }
-
-        /* سجل المهارات */
-        .battle-log { 
-            margin: 20px auto; width: 80%; height: 80px; background: rgba(0,0,0,0.8); 
-            border-right: 4px solid var(--gold); padding: 10px; overflow-y: auto; font-size: 14px;
-        }
-
-        /* مهارات ديابلو في السهم الجانبي */
-        .skill-item { 
-            background: #222; margin: 5px 0; padding: 8px; border-radius: 5px; 
-            border: 1px solid #444; font-size: 12px; cursor: pointer;
-        }
-        .skill-item:hover { border-color: var(--gold); }
-        .cooldown { color: var(--red); float: left; font-weight: bold; }
-
-        input { padding: 12px; border-radius: 8px; border: 1px solid var(--gold); background: #111; color: white; width: 80%; }
-        .btn { background: var(--gold); color: black; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .battle-log { height: 100px; background: rgba(0,0,0,0.9); margin: 0 20px 20px; border-radius: 10px; padding: 15px; overflow-y: auto; color: #0f0; border: 1px solid #333; }
+        .exit-btn { background: #444; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="side-panel" class="side-panel">
-        <div class="side-arrow" onclick="document.getElementById('side-panel').classList.toggle('open')">◄</div>
-        <div id="panel-content">
+    <div id="side-panel">
+        <div class="side-btn" onclick="togglePanel()">القائمة ◄</div>
+        <div id="panel-body" class="skill-box">
             </div>
     </div>
 
-    <div id="game-container">
-        <div id="login-screen" class="screen" style="display: flex; align-items: center; justify-content: center;">
-            <div style="background: #111; padding: 40px; border: 2px solid var(--gold); border-radius: 20px; text-align: center;">
-                <h1 style="color: var(--gold);">Legends Login</h1>
-                <input type="password" id="pass-field" placeholder="الرمز السري">
-                <button class="btn" onclick="login()">دخول العالم</button>
+    <div id="viewport">
+        <div class="stage" style="display:flex; align-items:center; justify-content:center;">
+            <div style="background:#111; padding:40px; border:3px solid var(--gold); border-radius:20px; text-align:center;">
+                <h1 style="color:var(--gold);">LEGENDS SYSTEM</h1>
+                <input type="password" id="p-word" placeholder="الرمز السري" style="padding:12px; border-radius:8px; border:1px solid gold; background:#000; color:white;">
+                <br><br>
+                <button class="s-btn" onclick="checkLogin()">دخول</button>
             </div>
         </div>
 
-        <div id="map-screen" class="screen" style="text-align: center;">
-            <div style="padding: 15px; background: #111; border-bottom: 2px solid var(--gold);">خريطة الأساطير</div>
-            <div class="map-frame">
-                <img src="20260129_152721.jpg" class="map-img">
-                <div class="node" style="top:20%; left:50%;" onclick="alert('البنك قيد الصيانة')"></div>
-                <div class="node" style="top:30%; left:78%;" onclick="goToBattle()"></div> <div class="node" style="top:58%; left:88%;" onclick="alert('المتجر قيد الصيانة')"></div>
+        <div class="stage">
+            <div class="map-layer">
+                <div class="map-box">
+                    <img src="20260129_152721.jpg" class="map-img">
+                    <div class="dot" style="top:20%; left:50%;" onclick="alert('البنك المركزي يرحب بك')"></div>
+                    <div class="dot" style="top:30%; left:78%;" onclick="enterBattle()"></div>
+                    <div class="dot" style="top:58%; left:88%;" onclick="alert('المتجر مغلق حالياً')"></div>
+                </div>
             </div>
         </div>
 
-        <div id="battle-screen" class="screen">
-            <div class="battle-arena">
-                <div class="fighter">
-                    <img src="diablo_avatar.jpg" alt="Diablo">
+        <div class="stage battle-ui">
+            <div class="fighters">
+                <div class="avatar">
+                    <img src="https://via.placeholder.com/150/0000FF/FFFFFF?text=DIABLO" alt="Diablo">
                     <h3>ديابلو</h3>
-                    <div class="hp-bar"><div id="p-hp" class="hp-fill" style="background: green;"></div></div>
-                    <small id="p-hp-txt">1000/1000</small>
+                    <div class="hp-cont"><div id="p-bar" class="hp-bar p-fill"></div><div class="hp-txt" id="p-txt">1000/1000</div></div>
                 </div>
-                <div style="font-size: 30px; color: var(--gold);">VS</div>
-                <div class="fighter enemy">
-                    <img src="gyutaro_avatar.jpg" alt="Gyutaro">
+                <h2 style="color:var(--gold); font-size:40px;">VS</h2>
+                <div class="avatar enemy">
+                    <img src="https://via.placeholder.com/150/FF0000/FFFFFF?text=GYUTARO" alt="Gyutaro">
                     <h3>غيوتارو</h3>
-                    <div class="hp-bar"><div id="e-hp" class="hp-fill" style="background: red;"></div></div>
-                    <small id="e-hp-txt">1500/1500</small>
+                    <div class="hp-cont"><div id="e-bar" class="hp-bar e-fill"></div><div class="hp-txt" id="e-txt">1500/1500</div></div>
                 </div>
             </div>
-            <div id="battle-log" class="battle-log">بدأت المواجهة الحتمية..</div>
-            <center><button class="btn" style="background: #333; color: white;" onclick="backToMap()">انسحاب</button></center>
+            <div id="log" class="battle-log">استعد للمواجهة..</div>
+            <center style="padding-bottom:20px;"><button class="exit-btn" onclick="exitBattle()">هروب من القتال</button></center>
         </div>
     </div>
 
     <script>
-        const _0xPASS = "MTIz";
-        let state = { hp: 1000, gold: 100, bank: 0, turn: false, cds: { atk: 0, shd: 0 } };
-        let enemy = { hp: 1500, mhp: 1500 };
+        const _0xHASH = "MTIz"; 
+        let hero = { hp: 1000, gold: 100, lock: false, cds: { atk: 0, shd: 0 } };
+        let boss = { hp: 1500, mhp: 1500 };
 
-        function login() {
-            if(btoa(document.getElementById('pass-field').value) === _0xPASS) {
-                moveScreen(1);
-                updatePanel('map');
-            } else { alert("خطأ!"); }
+        function togglePanel() { document.getElementById('side-panel').classList.toggle('open'); }
+
+        function checkLogin() {
+            if(btoa(document.getElementById('p-word').value) === _0xHASH) {
+                moveStage(1);
+                setPanel('map');
+            } else { alert("الرمز خاطئ!"); }
         }
 
-        function updatePanel(type) {
-            const content = document.getElementById('panel-content');
-            if(type === 'map') {
-                content.innerHTML = `
-                    <h3 style="color: gold;">رخصة المغامر</h3>
-                    <p>الاسم: ديابلو</p>
-                    <p>الذهب: ${state.gold}</p>
-                    <p>البنك: ${state.bank}</p>
-                `;
+        function setPanel(mode) {
+            const body = document.getElementById('panel-body');
+            if(mode === 'map') {
+                body.innerHTML = `<h3 style="color:gold;">رخصة المغامر</h3><p>الاسم: ديابلو</p><p>الذهب: ${hero.gold}</p>`;
             } else {
-                content.innerHTML = `
-                    <h3 style="color: red;">بطاقة المهارات</h3>
-                    <div class="skill-item" onclick="useSkill('atk')">نهاية العالم (هجوم) <span class="cooldown" id="cd-atk"></span></div>
-                    <div class="skill-item" onclick="useSkill('shd')">حاجز الهاوية (تعزيز) <span class="cooldown" id="cd-shd"></span></div>
-                    <div class="skill-item" onclick="useSkill('mind')">العالم الوهمي (تحكم)</div>
+                body.innerHTML = `
+                    <h3 style="color:red;">المهارات</h3>
+                    <button id="atk" class="s-btn" onclick="skill('atk')">نهاية العالم (هجوم) <span id="cd1"></span></button>
+                    <button id="shd" class="s-btn" onclick="skill('shd')">حاجز الهاوية (تعزيز) <span id="cd2"></span></button>
+                    <button class="s-btn" onclick="skill('mind')">العالم الوهمي (تحكم)</button>
                 `;
             }
         }
 
-        function moveScreen(index) {
-            document.getElementById('game-container').style.transform = `translateX(${index * 100}vw)`;
+        function moveStage(idx) { document.getElementById('viewport').style.transform = `translateX(-${idx * 100}vw)`; }
+
+        function enterBattle() {
+            moveStage(2);
+            setPanel('battle');
+            boss.hp = 1500; hero.hp = 1000; hero.lock = false;
+            updateUI();
+            log("ديابلو يقف أمام غيوتارو..");
         }
 
-        function goToBattle() {
-            moveScreen(2);
-            updatePanel('battle');
-            log("ديابلو واجه غيوتارو في ساحة المعركة!");
-            enemy.hp = 1500; updateBattleUI();
-        }
+        function exitBattle() { moveStage(1); setPanel('map'); }
 
-        function backToMap() {
-            moveScreen(1);
-            updatePanel('map');
-        }
-
-        function useSkill(skill) {
-            if(state.turn) return;
-            if(skill === 'atk' && state.cds.atk === 0) {
-                enemy.hp -= 400; state.cds.atk = 2;
-                log("ديابلو: نهاية العالم! (400 ضرر)");
-            } else if(skill === 'shd' && state.cds.shd === 0) {
-                log("ديابلو: حاجز الهاوية مفعل!");
-                state.cds.shd = 3;
+        function skill(type) {
+            if(hero.lock) return;
+            if(type === 'atk' && hero.cds.atk === 0) {
+                boss.hp -= 400; hero.cds.atk = 2;
+                log("ديابلو: نهاية العالم ستمحوك! (400 ضرر)");
+            } else if(type === 'shd' && hero.cds.shd === 0) {
+                log("ديابلو: حاجز الهاوية مفعل! (سيتم صد الضرر)");
+                hero.cds.shd = 3;
+            } else if(type === 'mind') {
+                boss.hp -= 200; log("العالم الوهمي: غيوتارو يهاجم ظله!");
             } else { return; }
 
-            state.turn = true;
-            updateBattleUI();
-            if(enemy.hp <= 0) return win();
-            setTimeout(enemyTurn, 1000);
+            hero.lock = true;
+            updateUI();
+            if(boss.hp <= 0) return win();
+            setTimeout(bossTurn, 1000);
         }
 
-        function enemyTurn() {
-            let dmg = 150;
-            state.hp -= dmg;
-            log(`غيوتارو: هجوم ماندالا الدم (${dmg} ضرر)`);
-            if(state.cds.atk > 0) state.cds.atk--;
-            if(state.cds.shd > 0) state.cds.shd--;
-            state.turn = false;
-            updateBattleUI();
-            updatePanel('battle');
+        function bossTurn() {
+            let d = 150; hero.hp -= d;
+            log(`غيوتارو: خذ هذه! ماندالا الدم (${d} ضرر)`);
+            if(hero.cds.atk > 0) hero.cds.atk--;
+            if(hero.cds.shd > 0) hero.cds.shd--;
+            hero.lock = false;
+            updateUI();
+            if(hero.hp <= 0) { alert("سقط ديابلو.."); exitBattle(); }
         }
 
-        function updateBattleUI() {
-            document.getElementById('p-hp').style.width = (state.hp / 10) + "%";
-            document.getElementById('e-hp').style.width = (enemy.hp / 15) + "%";
-            document.getElementById('p-hp-txt').innerText = state.hp + "/1000";
-            document.getElementById('e-hp-txt').innerText = enemy.hp + "/1500";
+        function updateUI() {
+            document.getElementById('p-bar').style.width = (hero.hp/10) + "%";
+            document.getElementById('e-bar').style.width = (boss.hp/15) + "%";
+            document.getElementById('p-txt').innerText = hero.hp + "/1000";
+            document.getElementById('e-txt').innerText = boss.hp + "/1500";
             
-            const cdA = document.getElementById('cd-atk');
-            const cdS = document.getElementById('cd-shd');
-            if(cdA) cdA.innerText = state.cds.atk > 0 ? state.cds.atk : "";
-            if(cdS) cdS.innerText = state.cds.shd > 0 ? state.cds.shd : "";
+            if(document.getElementById('cd1')) {
+                document.getElementById('atk').disabled = hero.cds.atk > 0 || hero.lock;
+                document.getElementById('shd').disabled = hero.cds.shd > 0 || hero.lock;
+                document.getElementById('cd1').innerText = hero.cds.atk > 0 ? `(${hero.cds.atk})` : "";
+                document.getElementById('cd2').innerText = hero.cds.shd > 0 ? `(${hero.cds.shd})` : "";
+            }
         }
 
         function log(m) {
-            const l = document.getElementById('battle-log');
-            l.innerHTML = `<div>• ${m}</div>` + l.innerHTML;
+            const l = document.getElementById('log');
+            l.innerHTML = `<div>> ${m}</div>` + l.innerHTML;
         }
 
-        function win() { alert("نصر ساحق!"); state.gold += 200; backToMap(); }
+        function win() { alert("تم سحق غيوتارو!"); hero.gold += 300; exitBattle(); }
     </script>
 </body>
 </html>
