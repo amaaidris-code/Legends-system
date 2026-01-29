@@ -1,209 +1,117 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Legends System</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legends System - Final Map</title>
+    <style>
+        :root { --gold: #ffd700; --red: #ff4d4d; --bg: #0a0a0a; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; text-align: center; overflow-x: hidden; }
+        
+        .screen { display: none; padding: 20px; animation: fadeIn 0.4s; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-<style>
-body{
-  margin:0;
-  background:#000;
-  color:gold;
-  font-family:sans-serif;
-  text-align:center;
-  direction:rtl;
-}
+        /* شاشة الدخول */
+        .auth-container { background: #151515; padding: 30px; border: 2px solid var(--gold); display: inline-block; border-radius: 15px; margin-top: 50px; width: 300px; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
+        .btn-gold { background: var(--gold); color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 8px; }
 
-.screen{display:none;padding:15px}
-.active{display:block}
+        /* الخريطة */
+        .map-frame { position: relative; display: inline-block; margin-top: 20px; border: 3px solid #333; line-height: 0; }
+        .map-img { width: 100%; max-width: 850px; height: auto; border-radius: 10px; }
 
-.btn{
-  background:gold;
-  color:black;
-  padding:12px;
-  border:none;
-  width:100%;
-  font-weight:bold;
-  cursor:pointer;
-  margin-top:10px;
-}
+        .node { 
+            position: absolute; width: 11%; height: 11%; 
+            border: 3px solid var(--gold); border-radius: 50%; 
+            background: rgba(0, 0, 0, 0.7); cursor: pointer;
+            transform: translate(-50%, -50%); transition: 0.3s;
+            z-index: 10;
+        }
+        .node:hover { background: rgba(255, 215, 0, 0.4); transform: translate(-50%, -50%) scale(1.1); }
+        
+        /* الدائرة الثامنة في المركز */
+        .node-center { top: 50%; left: 50%; border-color: var(--red); box-shadow: 0 0 15px var(--red); }
 
-input,select{
-  width:100%;
-  padding:12px;
-  background:#222;
-  color:white;
-  border:1px solid gold;
-  margin-top:10px;
-}
-
-.login-box{
-  max-width:400px;
-  margin:60px auto;
-  border:2px solid gold;
-  padding:20px;
-  border-radius:10px;
-  background:#111;
-}
-
-/* الخريطة */
-.status-bar{
-  display:flex;
-  justify-content:space-around;
-  background:#111;
-  padding:10px;
-  border-bottom:2px solid gold;
-}
-
-.map-wrapper{
-  position:relative;
-  display:inline-block;
-  margin-top:15px;
-}
-
-.map-img{
-  width:100%;
-  max-width:1000px;
-}
-
-/* الشخصيات */
-.npc{
-  position:absolute;
-  transform:translate(-50%,-50%);
-}
-
-.hitbox{
-  width:70px;
-  height:70px;
-  border-radius:50%;
-  border:2px solid gold;
-  background:rgba(255,215,0,0.15);
-  cursor:pointer;
-}
-
-/* شاشة المكان */
-.location-box{
-  background:#111;
-  border:2px solid gold;
-  padding:25px;
-  border-radius:10px;
-  max-width:500px;
-  margin:40px auto;
-}
-</style>
+        /* توزيع 7 دوائر حول المركز بزوايا دقيقة (360/7) */
+        .n1 { top: 20%; left: 50%; }          /* أعلى */
+        .n2 { top: 30%; left: 78%; }          /* أعلى يمين */
+        .n3 { top: 58%; left: 88%; }          /* يمين أسفل قليلاً */
+        .n4 { top: 82%; left: 68%; }          /* أسفل يمين */
+        .n5 { top: 82%; left: 32%; }          /* أسفل يسار */
+        .n6 { top: 58%; left: 12%; }          /* يسار أسفل قليلاً */
+        .n7 { top: 30%; left: 22%; }          /* أعلى يسار */
+    </style>
 </head>
-
 <body>
 
-<!-- تسجيل الدخول -->
-<div id="login" class="screen active">
-  <div class="login-box">
-    <h2>Legends System</h2>
-    <input id="playerName" placeholder="اسم اللاعب">
-    <select id="playerChar">
-      <option value="diablo">ديابلو</option>
-      <option value="rimuru">ريمورو</option>
-      <option value="luffy">لوفي</option>
-    </select>
-    <input id="playerPass" type="password" placeholder="كلمة السر">
-    <button class="btn" onclick="login()">دخول</button>
-  </div>
-</div>
-
-<!-- الخريطة -->
-<div id="map" class="screen">
-  <div class="status-bar">
-    <span>اللاعب: <b id="uiName"></b></span>
-    <span>الذهب: <b>100</b></span>
-  </div>
-
-  <h3>اختر وجهتك</h3>
-
-  <div class="map-wrapper">
-    <img src="20260128_183545.jpg" class="map-img">
-
-    <!-- الجندي – تدريب -->
-    <div class="npc" style="top:12%;left:37%" onclick="visit('training')">
-      <div class="hitbox"></div>
+    <div id="login-screen" class="screen active">
+        <div class="auth-container">
+            <h2 style="color: var(--gold);">نظام الأساطير</h2>
+            <select id="char-list">
+                <option value="ديابلو">ديابلو</option>
+                <option value="ريمورو">ريمورو</option>
+                <option value="لوفي">لوفي</option>
+                <option value="سوكونا">سوكونا</option>
+            </select>
+            <input type="password" id="pass-field" placeholder="كلمة السر">
+            <button class="btn-gold" onclick="validate()">دخول</button>
+        </div>
     </div>
 
-    <!-- المحارب – كولوسيوم -->
-    <div class="npc" style="top:25%;left:70%" onclick="visit('arena')">
-      <div class="hitbox"></div>
+    <div id="map-screen" class="screen">
+        <h3 style="color: var(--gold);">خريطة العالم: اختر وجهتك</h3>
+        <div class="map-frame">
+            <img src="20260128_183545.jpg" class="map-img">
+            
+            <div class="node node-center" onclick="visit('قلعة المركز')"></div>
+            
+            <div class="node n1" onclick="visit('المكان 1')"></div>
+            <div class="node n2" onclick="visit('المكان 2')"></div>
+            <div class="node n3" onclick="visit('المكان 3')"></div>
+            <div class="node n4" onclick="visit('المكان 4')"></div>
+            <div class="node n5" onclick="visit('المكان 5')"></div>
+            <div class="node n6" onclick="visit('المكان 6')"></div>
+            <div class="node n7" onclick="visit('المكان 7')"></div>
+        </div>
     </div>
 
-    <!-- الفتاة – حانة -->
-    <div class="npc" style="top:78%;left:56%" onclick="visit('tavern')">
-      <div class="hitbox"></div>
+    <div id="loc-screen" class="screen">
+        <h1 id="loc-name" style="color: var(--gold);"></h1>
+        <p>مرحباً بك في هذا الموقع السري.</p>
+        <button class="btn-gold" style="width: auto; padding: 10px 30px;" onclick="showMap()">عودة</button>
     </div>
 
-    <!-- موظفة النقابة -->
-    <div class="npc" style="top:48%;left:49%" onclick="visit('guild')">
-      <div class="hitbox"></div>
-    </div>
-  </div>
-</div>
+    <script>
+        // كلمات السر الخاصة بالشخصيات
+        const SECRETS = {
+            "ديابلو": "123",
+            "ريمورو": "456",
+            "لوفي": "789",
+            "سوكونا": "000"
+        };
 
-<!-- شاشة المكان -->
-<div id="location" class="screen">
-  <div class="location-box">
-    <h2 id="locTitle"></h2>
-    <p id="locDesc"></p>
-    <button class="btn" onclick="show('map')">العودة</button>
-  </div>
-</div>
+        function validate() {
+            const char = document.getElementById('char-list').value;
+            const pass = document.getElementById('pass-field').value;
+            if(SECRETS[char] === pass) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById('map-screen').classList.add('active');
+            } else {
+                alert("كلمة سر خاطئة!");
+            }
+        }
 
-<script>
-const CHAR_PASS={
-  diablo:"666",
-  rimuru:"999",
-  luffy:"123"
-};
+        function visit(name) {
+            document.getElementById('loc-name').innerText = name;
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('loc-screen').classList.add('active');
+        }
 
-const LOCATIONS={
-  training:{
-    title:"ساحة التدريب",
-    desc:"هنا تطور قوتك وتفتح مهارات جديدة."
-  },
-  arena:{
-    title:"الكولوسيوم",
-    desc:"معارك مجد، شهرة، ومكافآت ذهبية."
-  },
-  tavern:{
-    title:"حانة الأساطير",
-    desc:"شائعات، قصص سرية، ومهام خفية."
-  },
-  guild:{
-    title:"نقابة المغامرين",
-    desc:"استلام المهام والترقيات."
-  }
-};
-
-function login(){
-  const name=playerName.value;
-  const char=playerChar.value;
-  const pass=playerPass.value;
-
-  if(!name) return alert("أدخل الاسم");
-  if(CHAR_PASS[char]!==pass) return alert("كلمة السر خاطئة");
-
-  uiName.innerText=name;
-  show("map");
-}
-
-function visit(id){
-  locTitle.innerText=LOCATIONS[id].title;
-  locDesc.innerText=LOCATIONS[id].desc;
-  show("location");
-}
-
-function show(id){
-  document.querySelectorAll(".screen")
-  .forEach(s=>s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
-</script>
-
+        function showMap() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('map-screen').classList.add('active');
+        }
+    </script>
 </body>
 </html>
