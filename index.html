@@ -3,239 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legends System - Ultimate Edition</title>
+    <title>Legends System - Diablo vs Gyutaro</title>
     <style>
-        :root { --gold: #ffd700; --red: #ff4d4d; --bg: #050505; --panel: #151515; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+        :root { --gold: #ffd700; --red: #ff4d4d; --bg: #050505; --panel: rgba(20, 20, 20, 0.95); }
+        body { background: var(--bg); color: white; font-family: 'Cairo', sans-serif; margin: 0; overflow: hidden; }
         
-        .screen { display: none; padding: 20px; height: 100vh; box-sizing: border-box; }
-        .active { display: block; }
+        /* شاشات اللعبة */
+        .screen { display: none; height: 100vh; width: 100vw; position: relative; animation: fadeIn 0.6s ease; }
+        .active { display: flex; flex-direction: column; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* شريط الحالة المتقدم */
-        .top-nav { background: #111; padding: 10px 20px; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
-        
-        /* البطاقة الجانبية (الرخصة والمهارات) */
-        .side-card { 
-            position: fixed; right: -260px; top: 70px; width: 250px; 
-            background: var(--panel); border: 2px solid var(--gold); 
-            transition: 0.5s; z-index: 2000; padding: 15px; border-radius: 15px 0 0 15px;
+        /* البطاقة الجانبية (رخصة ديابلو) */
+        .license-card { 
+            position: fixed; left: -280px; top: 80px; width: 260px; 
+            background: linear-gradient(135deg, #1a1a1a, #000); border: 2px solid var(--gold); 
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 2000; padding: 15px; border-radius: 0 20px 20px 0;
+            box-shadow: 5px 0 15px rgba(255, 215, 0, 0.2);
         }
-        .side-card.open { right: 0; }
-        .card-toggle { 
-            position: absolute; left: -40px; top: 20px; width: 40px; height: 100px; 
+        .license-card.open { left: 0; }
+        .license-toggle { 
+            position: absolute; right: -40px; top: 20px; width: 40px; height: 110px; 
             background: var(--gold); color: black; writing-mode: vertical-rl; 
-            cursor: pointer; border-radius: 10px 0 0 10px; font-weight: bold;
+            cursor: pointer; border-radius: 0 10px 10px 0; font-weight: bold; text-align: center;
         }
 
-        /* الخريطة */
-        .map-wrapper { position: relative; display: inline-block; border: 3px solid #333; margin-top: 10px; }
-        .map-img { width: 100%; max-width: 800px; border-radius: 8px; }
-        .node { position: absolute; width: 10%; height: 10%; border: 2px solid var(--gold); border-radius: 50%; background: rgba(0,0,0,0.4); cursor: pointer; transform: translate(-50%, -50%); }
-
-        /* ساحة القتال */
-        .battle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        .fighter-box { background: #111; padding: 15px; border: 1px solid #444; border-radius: 10px; }
-        .hp-container { background: #333; height: 20px; border-radius: 10px; overflow: hidden; margin: 10px 0; border: 1px solid var(--gold); }
-        .hp-bar { height: 100%; background: linear-gradient(90deg, #00ff00, #008000); width: 100%; transition: 0.5s; }
+        /* واجهة القتال السينمائية */
+        .battle-arena { flex: 1; display: flex; justify-content: space-around; align-items: center; background: radial-gradient(circle, #222, #050505); padding: 20px; }
+        .char-box { text-align: center; width: 40%; transition: 0.3s; }
+        .char-img { width: 180px; height: 180px; border-radius: 50%; border: 4px solid var(--gold); box-shadow: 0 0 20px var(--gold); object-fit: cover; background: #111; }
+        .enemy-img { border-color: var(--red); box-shadow: 0 0 20px var(--red); }
         
-        /* سجل القتال */
-        .battle-log { background: black; border: 1px solid #333; height: 120px; overflow-y: auto; padding: 10px; font-size: 13px; color: #0f0; margin: 10px 0; text-align: right; }
+        /* أشرطة الطاقة */
+        .bar-container { width: 100%; background: #333; height: 25px; border-radius: 12px; margin: 10px 0; border: 2px solid #555; position: relative; overflow: hidden; }
+        .bar-fill { height: 100%; width: 100%; transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .hp-player { background: linear-gradient(90deg, #00ff00, #004400); }
+        .hp-enemy { background: linear-gradient(90deg, #ff0000, #440000); }
+        .bar-text { position: absolute; width: 100%; text-align: center; top: 2px; font-weight: bold; font-size: 14px; text-shadow: 1px 1px 2px black; }
 
-        /* الأزرار والمهارات */
+        /* سجل المهارات */
+        .skill-log { background: rgba(0,0,0,0.8); border: 1px solid #333; height: 100px; margin: 10px 20px; padding: 10px; border-radius: 10px; overflow-y: auto; color: #aaa; font-size: 14px; }
+
+        /* لوحة التحكم بالمهارات */
+        .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; background: #111; border-top: 3px solid var(--gold); }
         .skill-btn { 
-            background: #222; color: white; border: 1px solid var(--gold); 
-            padding: 10px; cursor: pointer; border-radius: 5px; font-size: 12px;
+            background: #222; border: 1px solid var(--gold); color: white; padding: 15px; 
+            border-radius: 12px; cursor: pointer; position: relative; overflow: hidden;
         }
-        .skill-btn:disabled { border-color: #555; color: #555; cursor: not-allowed; }
-        .cooldown { font-size: 10px; color: var(--red); display: block; }
+        .skill-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #444; }
+        .cooldown-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7); color: var(--red); font-weight: bold; }
 
-        .btn-action { background: var(--gold); color: black; padding: 10px 20px; border: none; cursor: pointer; font-weight: bold; border-radius: 5px; width: 100%; margin: 5px 0; }
+        /* البنك والمتجر */
+        .npc-panel { margin: auto; background: var(--panel); border: 2px solid var(--gold); border-radius: 20px; padding: 40px; width: 80%; max-width: 500px; box-shadow: 0 0 50px black; }
+        .action-btn { background: var(--gold); color: black; border: none; padding: 15px; width: 100%; margin: 10px 0; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="side-card" class="side-card">
-        <div class="card-toggle" onclick="document.getElementById('side-card').classList.toggle('open')">الشخصية ◄</div>
-        <h4 style="color: var(--gold); border-bottom: 1px solid #444;">رخصة المغامر</h4>
-        <p style="font-size: 12px;">الاسم: ديابلو<br>الرتبة: شيطان سامي<br>المستوى: 1</p>
-        <hr>
-        <h4 style="color: var(--gold);">الحقيبة</h4>
-        <div id="inv-items" style="font-size: 12px;">جرعات: 0</div>
+    <div id="license" class="license-card">
+        <div class="license-toggle" onclick="document.getElementById('license').classList.toggle('open')">رخصة المغامر ☰</div>
+        <h3 style="color: var(--gold); margin-top: 0;">ID: ديابلو</h3>
+        <p>الرتبة: شيطان أسطوري</p>
+        <p>الذهب الميداني: <span id="lic-gold" style="color: gold;">100</span></p>
+        <p>رصيد البنك: <span id="lic-bank" style="color: #00ff00;">0</span></p>
+        <hr border="1">
+        <h4>المخزن (Inventory)</h4>
+        <p id="lic-potions">جرعات الشفاء: 0</p>
     </div>
 
-    <div id="login-screen" class="screen active" style="text-align: center;">
-        <div style="margin-top: 100px; display: inline-block; background: #111; padding: 40px; border: 2px solid var(--gold); border-radius: 20px;">
-            <h1 style="color: var(--gold);">Legends System</h1>
-            <input type="password" id="pass-field" placeholder="الرمز السري" style="padding: 10px; width: 200px; background: #222; color: white; border: 1px solid gold;">
-            <button onclick="auth()" class="btn-action" style="margin-top: 15px;">فتح النظام</button>
+    <div id="login-screen" class="screen active" style="justify-content: center; align-items: center;">
+        <div class="npc-panel">
+            <h1 style="color: var(--gold);">نظام الأساطير</h1>
+            <input type="password" id="pass-input" placeholder="الرمز السري لدخول ديابلو" style="width: 100%; padding: 15px; margin: 10px 0; background: #000; color: white; border: 1px solid gold; box-sizing: border-box;">
+            <button class="action-btn" onclick="checkAuth()">تحقق من الهوية</button>
         </div>
     </div>
 
     <div id="map-screen" class="screen">
-        <div class="top-nav">
-            <div>الذهب: <span id="m-gold" style="color: gold;">100</span></div>
-            <div>البنك: <span id="m-bank" style="color: gold;">0</span></div>
-            <button onclick="location.reload()" style="background: none; color: red; border: 1px solid red; cursor: pointer;">خروج</button>
+        <div style="padding: 20px; background: #111; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between;">
+            <span>مرحباً بك يا سيد الشياطين</span>
+            <span style="color: gold;">$ <span id="map-gold">100</span></span>
         </div>
-        <div style="text-align: center;">
-            <div class="map-wrapper">
-                <img src="20260129_152721.jpg" class="map-img">
-                <div class="node" style="top:20%; left:50%;" onclick="openBank()"></div> <div class="node" style="top:30%; left:78%;" onclick="startBattle()"></div> <div class="node" style="top:58%; left:88%;" onclick="openShop()"></div> </div>
+        <div style="flex: 1; position: relative; text-align: center; padding-top: 20px;">
+            <div style="position: relative; display: inline-block;">
+                <img src="20260129_152721.jpg" style="max-width: 90%; border: 3px solid #333; border-radius: 15px;">
+                <div style="position: absolute; top:20%; left:50%; width: 60px; height: 60px; border: 3px solid gold; border-radius: 50%; cursor: pointer;" onclick="uiBank()"></div>
+                <div style="position: absolute; top:30%; left:78%; width: 60px; height: 60px; border: 3px solid red; border-radius: 50%; cursor: pointer;" onclick="uiBattle()"></div>
+                <div style="position: absolute; top:58%; left:88%; width: 60px; height: 60px; border: 3px solid gold; border-radius: 50%; cursor: pointer;" onclick="uiShop()"></div>
+            </div>
         </div>
     </div>
 
     <div id="battle-screen" class="screen">
-        <div class="battle-grid">
-            <div class="fighter-box">
+        <div class="battle-arena">
+            <div class="char-box" id="player-box">
+                <img src="https://i.imgur.com/your-diablo-image.png" class="char-img" alt="Diablo">
                 <h3>ديابلو</h3>
-                <div class="hp-container"><div id="p-hp" class="hp-bar"></div></div>
-                <div id="p-hp-txt">1000/1000</div>
+                <div class="bar-container">
+                    <div id="p-hp-bar" class="bar-fill hp-player"></div>
+                    <div class="bar-text" id="p-hp-text">1000/1000</div>
+                </div>
             </div>
-            <div class="fighter-box">
+            
+            <div style="font-size: 40px; color: var(--gold); font-weight: bold; font-style: italic;">VS</div>
+
+            <div class="char-box" id="enemy-box">
+                <img src="https://i.imgur.com/your-gyutaro-image.png" class="char-img enemy-img" alt="Gyutaro">
                 <h3 id="e-name">غيوتارو</h3>
-                <div class="hp-container"><div id="e-hp" class="hp-bar" style="background: red;"></div></div>
-                <div id="e-hp-txt">1500/1500</div>
+                <div class="bar-container">
+                    <div id="e-hp-bar" class="bar-fill hp-enemy"></div>
+                    <div class="bar-text" id="e-hp-text">1500/1500</div>
+                </div>
             </div>
         </div>
-        
-        <div id="b-log" class="battle-log">لقد بدأت المواجهة..</div>
-        
-        <div id="battle-actions" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-            <button id="atk-btn" class="skill-btn" onclick="performSkill('atk')">نهاية العالم<br><small id="cd-atk">جاهز</small></button>
-            <button id="shd-btn" class="skill-btn" onclick="performSkill('shd')">حاجز الهاوية<br><small id="cd-shd">جاهز</small></button>
-            <button id="heal-btn" class="skill-btn" onclick="usePotion()">استعمال جرعة<br><small id="inv-count">0 متوفر</small></button>
+
+        <div class="skill-log" id="battle-log">اللقاء الأول.. القدر يبتسم لديابلو.</div>
+
+        <div class="controls">
+            <button id="btn-atk" class="skill-btn" onclick="useSkill('atk')">
+                <b>نهاية العالم</b><br><small>ضربة لا تُصد</small>
+                <div id="cd-atk" class="cooldown-overlay" style="height: 0%;"></div>
+            </button>
+            <button id="btn-shd" class="skill-btn" onclick="useSkill('shd')">
+                <b>حاجز الهاوية</b><br><small>تعزيز الدفاع</small>
+                <div id="cd-shd" class="cooldown-overlay" style="height: 0%;"></div>
+            </button>
+            <button id="btn-heal" class="skill-btn" onclick="useItem()">
+                <b>جرعة شفاء</b><br><small id="pot-count">0 متوفر</small>
+            </button>
         </div>
     </div>
 
-    <div id="npc-screen" class="screen">
-        <div style="max-width: 500px; margin: 50px auto; background: #111; padding: 30px; border: 2px solid var(--gold); border-radius: 15px; text-align: center;">
+    <div id="npc-screen" class="screen" style="justify-content: center; align-items: center;">
+        <div class="npc-panel">
             <h2 id="npc-title" style="color: var(--gold);"></h2>
-            <p id="npc-msg"></p>
-            <div id="npc-ui"></div>
-            <button class="btn-action" style="background: #333; color: white;" onclick="switchS('map-screen')">عودة للخريطة</button>
+            <p id="npc-msg" style="white-space: pre-line;"></p>
+            <div id="npc-btns"></div>
+            <button class="action-btn" style="background: #333; color: white;" onclick="switchS('map-screen')">عودة للخريطة</button>
         </div>
     </div>
 
     <script>
-        // نظام التشفير والحماية
-        const _0xS = "MTIz"; 
-        let p = { hp: 1000, mhp: 1000, gold: 100, bank: 0, potions: 0, shield: false };
-        let e = { name: "غيوتارو", hp: 1500, mhp: 1500 };
-        let turnLock = false; // قفل الهجوم المتكرر
-        let cooldowns = { atk: 0, shd: 0 };
+        // نظام التشفير للرمز السري
+        const _0xKEY = "MTIz"; 
+        let game = { gold: 100, bank: 0, hp: 1000, mhp: 1000, pots: 0, prot: false, lock: false };
+        let enemy = { name: "غيوتارو", hp: 1500, mhp: 1500 };
+        let cds = { atk: 0, shd: 0 };
 
-        function auth() {
-            if(btoa(document.getElementById('pass-field').value) === _0xS) switchS('map-screen');
-            else alert("فشل التحقق!");
+        function checkAuth() {
+            if(btoa(document.getElementById('pass-input').value) === _0xKEY) switchS('map-screen');
+            else alert("الرمز خاطئ يا متسلل!");
         }
 
-        // --- نظام البنك الموحد ---
-        function openBank() {
-            document.getElementById('npc-title').innerText = "البنك المركزي للأساطير";
-            document.getElementById('npc-msg').innerText = `رصيدك في المحفظة: ${p.gold}\nرصيدك في الخزنة: ${p.bank}`;
-            const ui = document.getElementById('npc-ui');
-            ui.innerHTML = `
-                <button class="btn-action" onclick="changeBank(50)">إيداع 50 ذهبة</button>
-                <button class="btn-action" onclick="changeBank(-1)">سحب كل المدخرات</button>
-            `;
-            switchS('npc-screen');
+        function updateAllUI() {
+            document.getElementById('map-gold').innerText = game.gold;
+            document.getElementById('lic-gold').innerText = game.gold;
+            document.getElementById('lic-bank').innerText = game.bank;
+            document.getElementById('lic-potions').innerText = "جرعات الشفاء: " + game.pots;
+            document.getElementById('pot-count').innerText = game.pots + " متوفر";
         }
 
-        function changeBank(amt) {
-            if(amt === -1) { p.gold += p.bank; p.bank = 0; }
-            else if(p.gold >= amt) { p.gold -= amt; p.bank += amt; }
-            openBank(); updateUI();
+        // --- واجهة البنك ---
+        function uiBank() {
+            setupNPC("البنك الملكي", `رصيدك الميداني: ${game.gold}\nرصيدك في الخزنة: ${game.bank}`);
+            addNPCBtn("إيداع 50 ذهبة", () => { if(game.gold >= 50){ game.gold-=50; game.bank+=50; uiBank(); updateAllUI(); } });
+            addNPCBtn("سحب كل المدخرات", () => { game.gold+=game.bank; game.bank=0; uiBank(); updateAllUI(); });
         }
 
-        // --- نظام المتجر ---
-        function openShop() {
-            document.getElementById('npc-title').innerText = "متجر الأدوات";
-            document.getElementById('npc-msg').innerText = "جرعة الشفاء (50 ذهب) - تزيد 400 HP";
-            document.getElementById('npc-ui').innerHTML = `
-                <button class="btn-action" onclick="buyPotion()">شراء جرعة</button>
-            `;
-            switchS('npc-screen');
+        // --- واجهة المتجر ---
+        function uiShop() {
+            setupNPC("التاجر الجوال", "جرعة شفاء ملكية (+400 HP)\nالسعر: 50 ذهب");
+            addNPCBtn("شراء (50 ذهب)", () => { if(game.gold >= 50){ game.gold-=50; game.pots++; uiShop(); updateAllUI(); } });
         }
 
-        function buyPotion() {
-            if(p.gold >= 50) { p.gold -= 50; p.potions++; updateUI(); alert("تم الشراء!"); openShop(); }
-        }
-
-        // --- نظام القتال المتقدم ---
-        function startBattle() {
-            e.hp = e.mhp; p.hp = p.mhp; turnLock = false;
-            updateBattleUI();
+        // --- نظام القتال السينمائي ---
+        function uiBattle() {
+            enemy.hp = enemy.mhp; game.hp = game.mhp; game.lock = false;
+            cds = { atk: 0, shd: 0 };
+            updateBattleBars();
             switchS('battle-screen');
         }
 
-        function performSkill(type) {
-            if(turnLock || cooldowns[type] > 0) return;
-            turnLock = true;
+        function useSkill(type) {
+            if(game.lock || (type === 'atk' && cds.atk > 0) || (type === 'shd' && cds.shd > 0)) return;
+            game.lock = true; // قفل الهجوم لمنع السبام
 
             if(type === 'atk') {
-                e.hp -= 400; log("ديابلو أطلق 'نهاية العالم'! ضرر: 400");
-                cooldowns.atk = 2;
+                enemy.hp -= 400; logBattle("ديابلو يطلق 'نهاية العالم'! غيوتارو يتألم بشدة.");
+                cds.atk = 2;
             } else if(type === 'shd') {
-                p.shield = true; log("ديابلو فعل 'حاجز الهاوية'!");
-                cooldowns.shd = 3;
+                game.prot = true; logBattle("ديابلو استدعى 'حاجز الهاوية'.. الدفاع مطلق.");
+                cds.shd = 3;
             }
-
-            updateBattleUI();
-            if(e.hp <= 0) return win();
+            
+            updateBattleBars();
+            if(enemy.hp <= 0) return winBattle();
             setTimeout(enemyTurn, 1000);
         }
 
-        function usePotion() {
-            if(p.potions > 0 && !turnLock) {
-                p.hp = Math.min(p.mhp, p.hp + 400);
-                p.potions--;
-                log("تم استخدام جرعة شفاء! +400 HP");
-                updateUI(); updateBattleUI();
-                turnLock = true;
+        function useItem() {
+            if(game.pots > 0 && !game.lock) {
+                game.hp = Math.min(game.mhp, game.hp + 400);
+                game.pots--;
+                logBattle("ديابلو شرب جرعة الشفاء.. جراحه تلتئم.");
+                game.lock = true;
+                updateAllUI(); updateBattleBars();
                 setTimeout(enemyTurn, 1000);
             }
         }
 
         function enemyTurn() {
-            let dmg = p.shield ? 0 : 150;
-            p.hp -= dmg; p.shield = false;
-            log(dmg === 0 ? "درع الهاوية صد هجوم الخصم!" : `${e.name} هاجم وسبب ${dmg} ضرر!`);
+            let dmg = game.prot ? 0 : 180;
+            game.hp -= dmg; game.prot = false;
+            logBattle(dmg === 0 ? "غيوتارو هجم ولكن الحاجز سحقه!" : `غيوتارو استخدم 'ماندالا الدم' وسبب ${dmg} ضرر.`);
             
-            // تقليل التهدئة
-            for(let k in cooldowns) if(cooldowns[k] > 0) cooldowns[k]--;
+            // إدارة التهدئة
+            if(cds.atk > 0) cds.atk--;
+            if(cds.shd > 0) cds.shd--;
             
-            turnLock = false;
-            updateBattleUI();
-            if(p.hp <= 0) { alert("هزمت.."); switchS('map-screen'); }
+            game.lock = false;
+            updateBattleBars();
+            if(game.hp <= 0) { alert("هزمت.. القوة لم تكن كافية."); switchS('map-screen'); }
         }
 
-        function win() { alert("نصر عظيم! حصلت على 200 ذهب"); p.gold += 200; updateUI(); switchS('map-screen'); }
-
-        function log(m) {
-            const l = document.getElementById('b-log');
-            l.innerHTML += `<div>• ${m}</div>`;
-            l.scrollTop = l.scrollHeight;
-        }
-
-        function updateBattleUI() {
-            document.getElementById('p-hp').style.width = (p.hp/p.mhp*100) + "%";
-            document.getElementById('e-hp').style.width = (e.hp/e.mhp*100) + "%";
-            document.getElementById('p-hp-txt').innerText = `${p.hp}/${p.mhp}`;
-            document.getElementById('e-hp-txt').innerText = `${e.hp}/${e.mhp}`;
-            document.getElementById('inv-count').innerText = `${p.potions} متوفر`;
+        function updateBattleBars() {
+            document.getElementById('p-hp-bar').style.width = (game.hp/game.mhp*100) + "%";
+            document.getElementById('e-hp-bar').style.width = (enemy.hp/enemy.mhp*100) + "%";
+            document.getElementById('p-hp-text').innerText = `${game.hp}/${game.mhp}`;
+            document.getElementById('e-hp-text').innerText = `${enemy.hp}/${enemy.mhp}`;
             
-            document.getElementById('atk-btn').disabled = (cooldowns.atk > 0 || turnLock);
-            document.getElementById('shd-btn').disabled = (cooldowns.shd > 0 || turnLock);
-            document.getElementById('cd-atk').innerText = cooldowns.atk > 0 ? `انتظر ${cooldowns.atk}` : "جاهز";
-            document.getElementById('cd-shd').innerText = cooldowns.shd > 0 ? `انتظر ${cooldowns.shd}` : "جاهز";
+            // تحديث واجهة التهدئة بصرياً
+            document.getElementById('btn-atk').disabled = (cds.atk > 0 || game.lock);
+            document.getElementById('btn-shd').disabled = (cds.shd > 0 || game.lock);
+            document.getElementById('cd-atk').style.height = (cds.atk/2*100) + "%";
+            document.getElementById('cd-shd').style.height = (cds.shd/3*100) + "%";
         }
 
-        function updateUI() {
-            document.getElementById('m-gold').innerText = p.gold;
-            document.getElementById('m-bank').innerText = p.bank;
-            document.getElementById('inv-items').innerText = `جرعات الشفاء: ${p.potions}`;
+        function winBattle() { 
+            alert("انتصر ديابلو! غيوتارو يتلاشى في العدم."); 
+            game.gold += 300; updateAllUI(); switchS('map-screen'); 
         }
 
+        // أدوات النظام
+        function setupNPC(t, m) {
+            document.getElementById('npc-title').innerText = t;
+            document.getElementById('npc-msg').innerText = m;
+            document.getElementById('npc-btns').innerHTML = "";
+            switchS('npc-screen');
+        }
+        function addNPCBtn(t, f) {
+            let b = document.createElement('button'); b.className = "action-btn"; b.innerText = t; b.onclick = f;
+            document.getElementById('npc-btns').appendChild(b);
+        }
+        function logBattle(m) {
+            const l = document.getElementById('battle-log');
+            l.innerHTML = `<div>> ${m}</div>` + l.innerHTML;
+        }
         function switchS(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
