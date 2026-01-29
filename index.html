@@ -2,202 +2,289 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diablo vs Gyutaro: Ultimate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Diablo: The Absolute Sovereign</title>
     <style>
-        :root { --gold: #ffd700; --red: #ff3e3e; --bg: #030303; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; overflow: hidden; }
-
-        /* حاوية السينما */
-        #viewport { display: flex; width: 300vw; height: 100vh; transition: transform 0.8s cubic-bezier(0.85, 0, 0.15, 1); }
-        .stage { width: 100vw; height: 100vh; flex-shrink: 0; position: relative; }
-
-        /* السهم الجانبي المطور */
-        #side-panel { 
-            position: fixed; right: -280px; top: 10%; width: 260px; height: 70%;
-            background: linear-gradient(180deg, #1a1a1a, #0a0a0a); border: 2px solid var(--gold); 
-            z-index: 5000; transition: 0.4s; border-radius: 20px 0 0 20px; box-shadow: -10px 0 30px rgba(0,0,0,0.8);
-        }
-        #side-panel.open { right: 0; }
-        .side-btn { 
-            position: absolute; left: -45px; top: 20px; width: 45px; height: 120px; 
-            background: var(--gold); color: #000; cursor: pointer; border-radius: 15px 0 0 15px;
-            display: flex; align-items: center; justify-content: center; font-weight: bold; writing-mode: vertical-rl;
+        :root {
+            --gold: #ffd700; --red: #ff3e3e; --blue: #00d4ff; --bg: #010101;
+            --panel: rgba(12, 12, 12, 0.99); --neon: 0 0 20px var(--gold);
         }
 
-        /* الخريطة والدوائر المصغرة */
-        .map-layer { display: flex; justify-content: center; align-items: center; height: 100%; }
-        .map-box { position: relative; border: 4px solid #222; border-radius: 20px; overflow: hidden; }
-        .map-img { max-width: 85vw; max-height: 80vh; display: block; }
-        .dot { 
-            position: absolute; width: 18px; height: 18px; background: rgba(0,0,0,0.8); 
-            border: 2px solid var(--gold); border-radius: 50%; cursor: pointer; 
-            transform: translate(-50%, -50%); transition: 0.3s; box-shadow: 0 0 10px var(--gold);
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: white; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; }
+
+        /* المحرك البصري - فصل الطبقات */
+        .layer {
+            position: absolute; width: 100%; height: 100%;
+            display: none; flex-direction: column;
+            background: var(--bg); z-index: 10;
         }
-        .dot:hover { transform: translate(-50%, -50%) scale(1.5); background: var(--gold); }
+        .active { display: flex; animation: viewIn 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
+        @keyframes viewIn { from { opacity: 0; transform: scale(1.1); } to { opacity: 1; transform: scale(1); } }
 
-        /* واجهة المعركة */
-        .battle-ui { display: flex; flex-direction: column; height: 100%; background: radial-gradient(circle, #1a1a1a, #000); }
-        .fighters { flex: 1; display: flex; justify-content: space-around; align-items: center; padding: 20px; }
-        .avatar { text-align: center; width: 40%; }
-        .avatar img { width: 180px; height: 180px; border-radius: 50%; border: 4px solid var(--gold); filter: drop-shadow(0 0 15px var(--gold)); }
-        .avatar.enemy img { border-color: var(--red); filter: drop-shadow(0 0 15px var(--red)); }
-
-        /* أشرطة الـ HP */
-        .hp-cont { background: #222; height: 25px; border-radius: 15px; margin: 15px 0; border: 2px solid #444; overflow: hidden; position: relative; }
-        .hp-bar { height: 100%; width: 100%; transition: 0.6s; }
-        .p-fill { background: linear-gradient(90deg, #00ff00, #006600); }
-        .e-fill { background: linear-gradient(90deg, #ff0000, #660000); }
-        .hp-txt { position: absolute; width: 100%; text-align: center; top: 2px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
-
-        /* أزرار المهارات (داخل السهم) */
-        .skill-box { padding: 20px; }
-        .s-btn { 
-            width: 100%; padding: 15px; margin: 10px 0; background: #222; color: white; 
-            border: 1px solid var(--gold); border-radius: 10px; cursor: pointer; font-weight: bold;
+        /* السهم الجانبي الفائق */
+        #side-deck {
+            position: fixed; left: -320px; top: 0; width: 320px; height: 100%;
+            background: var(--panel); border-right: 3px solid var(--gold);
+            z-index: 10000; transition: 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            padding: 25px; box-shadow: 20px 0 60px rgba(0,0,0,0.95);
         }
-        .s-btn:disabled { opacity: 0.4; cursor: not-allowed; border-color: #444; }
+        #side-deck.open { left: 0; }
+        .deck-handle {
+            position: absolute; right: -45px; top: 15%; width: 45px; height: 110px;
+            background: var(--gold); color: black; cursor: pointer;
+            border-radius: 0 12px 12px 0; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; writing-mode: vertical-rl; letter-spacing: 2px;
+        }
+
+        /* واجهة الخريطة والدوائر */
+        .map-section { flex: 1; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        .map-frame { position: relative; border: 3px solid #222; border-radius: 25px; overflow: hidden; box-shadow: 0 0 50px #000; }
+        .map-img { max-width: 95vw; max-height: 75vh; border-radius: 20px; display: block; }
         
-        .battle-log { height: 100px; background: rgba(0,0,0,0.9); margin: 0 20px 20px; border-radius: 10px; padding: 15px; overflow-y: auto; color: #0f0; border: 1px solid #333; }
-        .exit-btn { background: #444; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        .node {
+            position: absolute; width: 16px; height: 16px; 
+            background: rgba(0,0,0,0.8); border: 2px solid var(--gold);
+            border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer;
+            transition: 0.4s; z-index: 100; animation: pulseGlow 2s infinite;
+        }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.8); } 70% { box-shadow: 0 0 0 12px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
+        .node:hover { transform: translate(-50%, -50%) scale(1.8); background: var(--gold); box-shadow: 0 0 20px var(--gold); }
+        .node-boss { border-color: var(--red); width: 22px; height: 22px; animation-duration: 1s; }
+
+        /* ساحة القتال السينمائية */
+        .battle-view { flex: 1; display: flex; flex-direction: column; background: radial-gradient(circle at center, #200000 0%, #000 100%); }
+        .fighter-zone { flex: 1; display: flex; justify-content: space-around; align-items: center; padding: 20px; position: relative; }
+        .warrior { text-align: center; width: 45%; transition: 0.5s; }
+        .warrior img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--gold); box-shadow: var(--neon); object-fit: cover; }
+        .warrior.enemy img { border-color: var(--red); box-shadow: 0 0 20px var(--red); }
+        
+        /* أشرطة الحالة */
+        .gauge { width: 100%; height: 24px; background: #000; border: 1px solid #333; border-radius: 12px; margin-top: 12px; position: relative; overflow: hidden; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .gauge-fill { height: 100%; width: 100%; transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .hp-player { background: linear-gradient(90deg, #00ff00, #005500); }
+        .hp-enemy { background: linear-gradient(90deg, #ff0000, #550000); }
+        .gauge-txt { position: absolute; width: 100%; text-align: center; font-size: 13px; top: 3px; font-weight: bold; text-shadow: 1px 1px 2px #000; color: white; }
+
+        /* الكونسول (سجل القتال) */
+        .console-log { height: 120px; background: #050505; border-top: 2px solid #1a1a1a; padding: 15px; overflow-y: auto; color: #00ff00; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.6; }
+
+        /* عناصر القائمة الجانبية */
+        .deck-header { color: var(--gold); font-size: 18px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
+        .skill-btn {
+            background: #111; border: 1px solid #444; padding: 15px; border-radius: 12px;
+            margin-bottom: 12px; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden;
+        }
+        .skill-btn:hover:not(.locked) { border-color: var(--gold); background: #1a1a1a; transform: scale(1.02); }
+        .skill-btn.locked { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+        .skill-name { display: block; color: var(--gold); font-weight: bold; font-size: 15px; }
+        .skill-type { font-size: 10px; color: #888; background: #222; padding: 2px 5px; border-radius: 4px; margin-right: 5px; }
+        .cd-bar { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--red); transition: 0.3s; }
+
+        /* الأزرار */
+        .btn-action { background: var(--gold); color: black; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-action:hover { box-shadow: 0 0 15px var(--gold); }
+
+        /* الحركات السينمائية */
+        .shake { animation: shakeEffect 0.5s; }
+        @keyframes shakeEffect { 0%, 100% { transform: translate(0,0); } 20% { transform: translate(-8px, 0); } 40% { transform: translate(8px, 0); } 60% { transform: translate(-4px, 0); } }
     </style>
 </head>
 <body>
 
-    <div id="side-panel">
-        <div class="side-btn" onclick="togglePanel()">القائمة ◄</div>
-        <div id="panel-body" class="skill-box">
-            </div>
+    <div id="side-deck">
+        <div class="deck-handle" onclick="toggleDeck()">LEGENDS ☰</div>
+        <div id="deck-content"></div>
     </div>
 
-    <div id="viewport">
-        <div class="stage" style="display:flex; align-items:center; justify-content:center;">
-            <div style="background:#111; padding:40px; border:3px solid var(--gold); border-radius:20px; text-align:center;">
-                <h1 style="color:var(--gold);">LEGENDS SYSTEM</h1>
-                <input type="password" id="p-word" placeholder="الرمز السري" style="padding:12px; border-radius:8px; border:1px solid gold; background:#000; color:white;">
-                <br><br>
-                <button class="s-btn" onclick="checkLogin()">دخول</button>
+    <div id="scr-auth" class="layer active" style="justify-content:center; align-items:center;">
+        <div style="background:#0a0a0a; padding:45px; border:2px solid var(--gold); border-radius:25px; text-align:center; width: 85%; box-shadow: var(--neon);">
+            <h1 style="color:var(--gold); margin:0; letter-spacing:3px;">DIABLO SOVEREIGN</h1>
+            <p style="color:#444; font-size:11px; margin-bottom:25px;">INITIALIZING BIOMETRIC AUTHENTICATION</p>
+            <input type="password" id="pass-input" style="width:100%; padding:18px; background:#000; color:var(--gold); border:1px solid #222; text-align:center; margin-bottom:25px; border-radius:12px; font-size:20px;">
+            <button class="btn-action" onclick="validateAuth()" style="width:100%;">ACCESS SYSTEM</button>
+        </div>
+    </div>
+
+    <div id="scr-map" class="layer">
+        <div style="padding:15px; background:#0a0a0a; border-bottom:1px solid var(--gold); display:flex; justify-content:space-between; align-items:center;">
+            <span><b id="p-rank-label" style="color:var(--gold);">رتبة: مبتدئ</b> | ديابلو</span>
+            <span style="color:var(--gold); font-weight:bold;">الذهب: <span id="p-gold-count">100</span></span>
+        </div>
+        <div class="map-section">
+            <div class="map-frame">
+                <img src="20260129_152721.jpg" class="map-img">
+                <div class="node" style="top:20%; left:50%;" onclick="alert('البنك المركزي')"></div>
+                <div class="node node-boss" style="top:30%; left:78%;" onclick="initCombat('غيوتارو')"></div>
+                <div class="node" style="top:58%; left:88%;" onclick="alert('المتجر')"></div>
             </div>
         </div>
+    </div>
 
-        <div class="stage">
-            <div class="map-layer">
-                <div class="map-box">
-                    <img src="20260129_152721.jpg" class="map-img">
-                    <div class="dot" style="top:20%; left:50%;" onclick="alert('البنك المركزي يرحب بك')"></div>
-                    <div class="dot" style="top:30%; left:78%;" onclick="enterBattle()"></div>
-                    <div class="dot" style="top:58%; left:88%;" onclick="alert('المتجر مغلق حالياً')"></div>
+    <div id="scr-battle" class="layer">
+        <div class="battle-view" id="battle-arena">
+            <div class="fighter-zone">
+                <div class="warrior" id="p-warrior">
+                    <img src="https://via.placeholder.com/150/000/FFD700?text=DIABLO" alt="Diablo">
+                    <div style="margin-top:8px; font-weight:bold;">ديابلو</div>
+                    <div class="gauge"><div id="p-hp-bar" class="gauge-fill hp-player"></div><div class="gauge-txt" id="p-hp-txt">1000/1000</div></div>
+                </div>
+                <div style="font-size:30px; font-weight:bold; color:var(--gold); text-shadow:0 0 10px var(--gold);">VS</div>
+                <div class="warrior enemy" id="e-warrior">
+                    <img src="https://via.placeholder.com/150/000/FF3E3E?text=GYUTARO" alt="Enemy">
+                    <div id="e-name" style="margin-top:8px; font-weight:bold; color:var(--red);">غيوتارو</div>
+                    <div class="gauge"><div id="e-hp-bar" class="gauge-fill hp-enemy"></div><div class="gauge-txt" id="e-hp-txt">1500/1500</div></div>
                 </div>
             </div>
-        </div>
-
-        <div class="stage battle-ui">
-            <div class="fighters">
-                <div class="avatar">
-                    <img src="https://via.placeholder.com/150/0000FF/FFFFFF?text=DIABLO" alt="Diablo">
-                    <h3>ديابلو</h3>
-                    <div class="hp-cont"><div id="p-bar" class="hp-bar p-fill"></div><div class="hp-txt" id="p-txt">1000/1000</div></div>
-                </div>
-                <h2 style="color:var(--gold); font-size:40px;">VS</h2>
-                <div class="avatar enemy">
-                    <img src="https://via.placeholder.com/150/FF0000/FFFFFF?text=GYUTARO" alt="Gyutaro">
-                    <h3>غيوتارو</h3>
-                    <div class="hp-cont"><div id="e-bar" class="hp-bar e-fill"></div><div class="hp-txt" id="e-txt">1500/1500</div></div>
-                </div>
-            </div>
-            <div id="log" class="battle-log">استعد للمواجهة..</div>
-            <center style="padding-bottom:20px;"><button class="exit-btn" onclick="exitBattle()">هروب من القتال</button></center>
+            <div id="combat-log" class="console-log"></div>
+            <center><button class="btn-action" style="background:#222; color:white; margin-bottom:20px;" onclick="surrender()">انسحاب</button></center>
         </div>
     </div>
 
     <script>
-        const _0xHASH = "MTIz"; 
-        let hero = { hp: 1000, gold: 100, lock: false, cds: { atk: 0, shd: 0 } };
-        let boss = { hp: 1500, mhp: 1500 };
+        // --- محرك اللعبة المطلق (Sovereign Engine) ---
+        const _P = "MTIz"; 
+        let Diablo = {
+            gold: 100, wins: 0, rank: "مبتدئ", 
+            hp: 1000, mhp: 1000, 
+            shield: false, lock: false,
+            skills: [
+                { id: 'atk', name: 'نهاية العالم', type: 'ضربة لا تُصد', cd: 0, mcd: 3, val: 400 },
+                { id: 'shd', name: 'حاجز الهاوية', type: 'تعزيز', cd: 0, mcd: 4, val: 0 },
+                { id: 'mind', name: 'التحكم بالعقول', type: 'تحكم', cd: 0, mcd: 3, val: 150 },
+                { id: 'abs', name: 'ماندالا الدم', type: 'امتصاص', cd: 0, mcd: 5, val: 200, locked: true }
+            ]
+        };
 
-        function togglePanel() { document.getElementById('side-panel').classList.toggle('open'); }
+        let Boss = { name: "غيوتارو", hp: 1500, mhp: 1500, atk: 180 };
 
-        function checkLogin() {
-            if(btoa(document.getElementById('p-word').value) === _0xHASH) {
-                moveStage(1);
-                setPanel('map');
-            } else { alert("الرمز خاطئ!"); }
+        function validateAuth() {
+            if(btoa(document.getElementById('pass-input').value) === _P) {
+                switchLayer('scr-map');
+                refreshDeck('map');
+            } else { alert("ACCESS DENIED!"); }
         }
 
-        function setPanel(mode) {
-            const body = document.getElementById('panel-body');
+        function switchLayer(id) {
+            document.querySelectorAll('.layer').forEach(l => l.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function toggleDeck() { document.getElementById('side-deck').classList.toggle('open'); }
+
+        function refreshDeck(mode) {
+            const body = document.getElementById('deck-content');
             if(mode === 'map') {
-                body.innerHTML = `<h3 style="color:gold;">رخصة المغامر</h3><p>الاسم: ديابلو</p><p>الذهب: ${hero.gold}</p>`;
-            } else {
                 body.innerHTML = `
-                    <h3 style="color:red;">المهارات</h3>
-                    <button id="atk" class="s-btn" onclick="skill('atk')">نهاية العالم (هجوم) <span id="cd1"></span></button>
-                    <button id="shd" class="s-btn" onclick="skill('shd')">حاجز الهاوية (تعزيز) <span id="cd2"></span></button>
-                    <button class="s-btn" onclick="skill('mind')">العالم الوهمي (تحكم)</button>
+                    <div class="deck-header">بطاقة السيادة</div>
+                    <p>المغامر: <b>ديابلو</b></p>
+                    <p>الرتبة: <b style="color:gold;">${Diablo.rank}</b></p>
+                    <p>الذهب: <b style="color:gold;">${Diablo.gold}</b></p>
+                    <hr style="border:1px solid #222;">
+                    <p style="font-size:12px; color:#666;">المهمات: هزيمة غيوتارو وافتراس قوته.</p>
                 `;
+            } else {
+                let html = `<div class="deck-header">منصة المهارات</div>`;
+                Diablo.skills.forEach(s => {
+                    html += `
+                        <div class="skill-btn ${s.locked ? 'locked' : ''} ${s.cd > 0 ? 'cd' : ''}" onclick="triggerSkill('${s.id}')">
+                            <span class="skill-name">${s.name} ${s.locked ? '🔒' : ''}</span>
+                            <span class="skill-type">${s.type}</span>
+                            ${s.cd > 0 ? `<div class="cd-bar" style="width:${(s.cd/s.mcd)*100}%"></div>` : ''}
+                        </div>
+                    `;
+                });
+                body.innerHTML = html;
             }
         }
 
-        function moveStage(idx) { document.getElementById('viewport').style.transform = `translateX(-${idx * 100}vw)`; }
-
-        function enterBattle() {
-            moveStage(2);
-            setPanel('battle');
-            boss.hp = 1500; hero.hp = 1000; hero.lock = false;
-            updateUI();
-            log("ديابلو يقف أمام غيوتارو..");
+        // --- نظام القتال ---
+        function initCombat(name) {
+            Boss.hp = Boss.mhp; Diablo.hp = Diablo.mhp; Diablo.lock = false;
+            Diablo.skills.forEach(s => s.cd = 0);
+            document.getElementById('combat-log').innerHTML = "";
+            updateVisuals();
+            switchLayer('scr-battle');
+            refreshDeck('battle');
+            log(`ديابلو يواجه ${name} في ساحة القدر..`);
         }
 
-        function exitBattle() { moveStage(1); setPanel('map'); }
+        function triggerSkill(id) {
+            if(Diablo.lock) return;
+            const s = Diablo.skills.find(x => x.id === id);
+            if(s.locked || s.cd > 0) return;
 
-        function skill(type) {
-            if(hero.lock) return;
-            if(type === 'atk' && hero.cds.atk === 0) {
-                boss.hp -= 400; hero.cds.atk = 2;
-                log("ديابلو: نهاية العالم ستمحوك! (400 ضرر)");
-            } else if(type === 'shd' && hero.cds.shd === 0) {
-                log("ديابلو: حاجز الهاوية مفعل! (سيتم صد الضرر)");
-                hero.cds.shd = 3;
-            } else if(type === 'mind') {
-                boss.hp -= 200; log("العالم الوهمي: غيوتارو يهاجم ظله!");
-            } else { return; }
+            Diablo.lock = true;
+            s.cd = s.mcd;
+            
+            if(id === 'atk') {
+                Boss.hp -= s.val;
+                log(`ديابلو: [${s.name}]! ضرر: ${s.val}`);
+                shake('e-warrior');
+            } else if(id === 'shd') {
+                Diablo.shield = true;
+                log(`تم تفعيل [${s.name}].. ديابلو منيع الآن.`);
+            } else if(id === 'mind') {
+                Boss.hp -= s.val;
+                log(`[التحكم بالعقول]: غيوتارو يهاجم نفسه! ضرر: ${s.val}`);
+            } else if(id === 'abs') {
+                Boss.hp -= s.val; Diablo.hp = Math.min(Diablo.mhp, Diablo.hp + s.val);
+                log(`[امتصاص]: تم سحب حياة الخصم! استعادة: ${s.val}`);
+            }
 
-            hero.lock = true;
-            updateUI();
-            if(boss.hp <= 0) return win();
+            updateVisuals();
+            refreshDeck('battle');
+            if(Boss.hp <= 0) return victory();
             setTimeout(bossTurn, 1000);
         }
 
         function bossTurn() {
-            let d = 150; hero.hp -= d;
-            log(`غيوتارو: خذ هذه! ماندالا الدم (${d} ضرر)`);
-            if(hero.cds.atk > 0) hero.cds.atk--;
-            if(hero.cds.shd > 0) hero.cds.shd--;
-            hero.lock = false;
-            updateUI();
-            if(hero.hp <= 0) { alert("سقط ديابلو.."); exitBattle(); }
+            let d = Diablo.shield ? 0 : Boss.atk;
+            Diablo.hp -= d;
+            log(Diablo.shield ? "غيوتارو: اللعنة! درع ديابلو لا يكسر." : `غيوتارو: ماندالا الدم! ضرر: ${d}`);
+            if(d > 0) shake('p-warrior');
+            
+            Diablo.shield = false; Diablo.lock = false;
+            Diablo.skills.forEach(s => { if(s.cd > 0) s.cd--; });
+            
+            updateVisuals();
+            refreshDeck('battle');
+            if(Diablo.hp <= 0) { alert("هزيمة ديابلو.."); surrender(); }
         }
 
-        function updateUI() {
-            document.getElementById('p-bar').style.width = (hero.hp/10) + "%";
-            document.getElementById('e-bar').style.width = (boss.hp/15) + "%";
-            document.getElementById('p-txt').innerText = hero.hp + "/1000";
-            document.getElementById('e-txt').innerText = boss.hp + "/1500";
-            
-            if(document.getElementById('cd1')) {
-                document.getElementById('atk').disabled = hero.cds.atk > 0 || hero.lock;
-                document.getElementById('shd').disabled = hero.cds.shd > 0 || hero.lock;
-                document.getElementById('cd1').innerText = hero.cds.atk > 0 ? `(${hero.cds.atk})` : "";
-                document.getElementById('cd2').innerText = hero.cds.shd > 0 ? `(${hero.cds.shd})` : "";
-            }
+        function victory() {
+            log("نصر ساحق! ديابلو يفترس روح غيوتارو..");
+            Diablo.gold += 500; Diablo.wins++;
+            // نظام الافتراس
+            Diablo.skills.find(s => s.id === 'abs').locked = false; 
+            // نظام الرتب
+            if(Diablo.wins >= 1) { Diablo.rank = "شيطان عظيم"; Diablo.mhp = 1200; }
+            alert("تم النصر! حصلت على مهارة 'ماندالا الدم' بالافتراس.");
+            surrender();
+        }
+
+        function updateVisuals() {
+            document.getElementById('p-hp-bar').style.width = (Diablo.hp/Diablo.mhp*100) + "%";
+            document.getElementById('e-hp-bar').style.width = (Boss.hp/Boss.mhp*100) + "%";
+            document.getElementById('p-hp-txt').innerText = `${Diablo.hp}/${Diablo.mhp}`;
+            document.getElementById('e-hp-txt').innerText = `${Boss.hp}/${Boss.mhp}`;
+            document.getElementById('p-gold-count').innerText = Diablo.gold;
+            document.getElementById('p-rank-label').innerText = "رتبة: " + Diablo.rank;
         }
 
         function log(m) {
-            const l = document.getElementById('log');
+            const l = document.getElementById('combat-log');
             l.innerHTML = `<div>> ${m}</div>` + l.innerHTML;
+            l.scrollTop = 0;
         }
 
-        function win() { alert("تم سحق غيوتارو!"); hero.gold += 300; exitBattle(); }
+        function shake(id) {
+            const el = document.getElementById(id);
+            el.classList.add('shake');
+            setTimeout(() => el.classList.remove('shake'), 500);
+        }
+
+        function surrender() { switchLayer('scr-map'); refreshDeck('map'); }
     </script>
 </body>
 </html>
