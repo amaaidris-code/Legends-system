@@ -3,159 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legends System - Diablo vs Gyutaro</title>
+    <title>Legends System - RPG Edition</title>
     <style>
-        body { background: #000; color: gold; font-family: sans-serif; text-align: center; direction: rtl; margin: 0; overflow-x: hidden; }
-        .battle-area { display: flex; justify-content: space-around; align-items: center; padding: 10px; margin-top: 30px; }
-        .card { border: 2px solid gold; padding: 5px; background: #111; width: 130px; }
-        .card img { width: 100%; height: auto; border-radius: 5px; }
-        .hp-bar { width: 100%; background: #333; height: 15px; border: 1px solid #fff; margin-top: 5px; }
-        .hp-fill { background: #00ff00; height: 100%; width: 100%; transition: 0.4s; }
+        body { background: #000; color: gold; font-family: 'Cairo', sans-serif; text-align: center; direction: rtl; margin: 0; }
+        .screen { display: none; padding: 20px; }
+        .active { display: block; }
         
-        /* نافذة التحكم بالخصم */
-        #control-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; border: 3px solid red; padding: 20px; z-index: 200; width: 85%; border-radius: 10px; box-shadow: 0 0 20px red; }
-        .control-btn { background: #4a0000; color: white; border: 1px solid gold; padding: 12px; margin: 8px 0; width: 100%; cursor: pointer; font-weight: bold; }
+        /* شاشة الدخول */
+        #login-screen input, #login-screen select { padding: 10px; margin: 10px; width: 80%; border-radius: 5px; }
+        .btn-start { background: gold; color: black; padding: 15px 30px; border: none; font-weight: bold; cursor: pointer; }
 
-        .skills-sidebar { position: fixed; left: -250px; top: 0; width: 250px; height: 100%; background: #1a1a1a; border-right: 2px solid gold; transition: 0.5s; z-index: 100; padding: 10px; box-sizing: border-box; text-align: right; }
-        .skills-sidebar.open { left: 0; }
-        .toggle-btn { position: absolute; right: -40px; top: 50%; background: gold; color: black; border: none; padding: 10px; cursor: pointer; border-radius: 0 5px 5px 0; font-weight: bold; }
-        .skills-img { width: 100%; border: 1px solid #444; margin-top: 10px; }
+        /* الخريطة */
+        #map-container { position: relative; display: inline-block; width: 100%; max-width: 800px; }
+        #map-img { width: 100%; border: 2px solid gold; }
+        .map-point { 
+            position: absolute; width: 50px; height: 50px; 
+            background: rgba(255, 215, 0, 0.3); border-radius: 50%; 
+            cursor: pointer; border: 2px solid gold;
+        }
+        .map-point:hover { background: rgba(255, 215, 0, 0.7); }
 
-        .controls { margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-        .skill-button { background: #8b0000; color: white; border: 1px solid gold; padding: 10px 15px; cursor: pointer; font-size: 14px; border-radius: 5px; min-width: 120px; }
-        .skill-button:disabled { background: #333; color: #777; border-color: #555; cursor: not-allowed; }
-        .cooldown-text { font-size: 10px; color: yellow; display: block; margin-top: 2px; }
+        /* أماكن الخريطة (إحداثيات تقريبية) */
+        #point-colosseum { top: 30%; left: 70%; } /* الكولوسيوم */
+        #point-training { top: 15%; left: 40%; } /* مكان التدريب */
+        #point-tavern { top: 75%; left: 55%; } /* الحانة */
+        #point-bank { top: 75%; left: 28%; } /* البنك */
+        #point-guild { top: 45%; left: 48%; } /* النقابة */
     </style>
 </head>
 <body>
 
-    <div id="control-modal">
-        <h3 style="color: white;">سيطر ديابلو على عقل غيوتارو!</h3>
-        <p style="color: gold;">اختر المهارة التي سينفذها الخصم ضد نفسه:</p>
-        <button class="control-btn" onclick="executeControl('attack', 150, 'منجل الدم')">منجل الدم (150 ضرر)</button>
-        <button class="control-btn" onclick="executeControl('attack', 300, 'سم القمر')">سم القمر (300 ضرر)</button>
-        <button class="control-btn" onclick="executeControl('heal', 200, 'تجدد الشيطان')">إجبار على معالجة ديابلو (200 HP)</button>
+    <div id="login-screen" class="screen active">
+        <h1>مرحباً بك في Legends System</h1>
+        <p>اختر هويتك السرية للبدء</p>
+        <select id="char-select">
+            <option value="ديابلو">ديابلو (Tensura)</option>
+            <option value="ريمورو">ريمورو (Tensura)</option>
+            <option value="لوفي">لوفي (One Piece)</option>
+            <option value="سوكونا">سوكونا (Jujutsu Kaisen)</option>
+        </select><br>
+        <input type="text" id="player-name" placeholder="اكتب اسمك الحركي"><br>
+        <input type="password" id="player-pass" placeholder="كلمة السر الخاصة بك"><br>
+        <button class="btn-start" onclick="startGame()">دخول إلى العالم</button>
     </div>
 
-    <div id="sidebar" class="skills-sidebar">
-        <button class="toggle-btn" onclick="toggleSidebar()">◀</button>
-        <h3 style="margin-top: 0;">دليل مهارات ديابلو</h3>
-        <img src="20260123_183133.jpg" class="skills-img">
-    </div>
-
-    <h1>Legends System: مهمة غيوتارو</h1>
-
-    <div class="battle-area">
-        <div id="player">
-            <div class="card"><img src="20260123_183110.jpg"><div>ديابلو</div></div>
-            <div class="hp-bar"><div id="p-hp" class="hp-fill"></div></div>
-            <p id="p-hp-text">1000 / 1000 HP</p>
+    <div id="map-screen" class="screen">
+        <h2>خريطة العالم: اختر وجهتك</h2>
+        <div id="map-container">
+            <img src="20260128_183545.jpg" id="map-img">
+            
+            <div id="point-colosseum" class="map-point" onclick="goTo('colosseum')" title="الكولوسيوم"></div>
+            <div id="point-training" class="map-point" onclick="goTo('training')" title="ساحة التدريب"></div>
+            <div id="point-tavern" class="map-point" onclick="goTo('tavern')" title="الحانة"></div>
+            <div id="point-bank" class="map-point" onclick="goTo('bank')" title="البنك"></div>
+            <div id="point-guild" class="map-point" onclick="goTo('guild')" title="نقابة المغامرين"></div>
         </div>
-        <h2 style="color: white;">VS</h2>
-        <div id="enemy">
-            <div class="card"><img src="gyutaro.jpg"><div>غيوتارو</div></div>
-            <div class="hp-bar"><div id="e-hp" class="hp-fill" style="background: red;"></div></div>
-            <p id="e-text">1500 / 1500 HP</p>
-        </div>
+        <p id="map-status">مرحباً <span id="display-name"></span>، أين تريد الذهاب؟</p>
     </div>
 
-    <div class="controls">
-        <button class="skill-button" id="btn-1" onclick="useSkill('نهاية العالم', 500, 2, 'attack', 'btn-1')">نهاية العالم <span class="cooldown-text"></span></button>
-        <button class="skill-button" id="btn-2" onclick="useSkill('حاجز الهاوية', 0, 2, 'defense', 'btn-2')">حاجز الهاوية <span class="cooldown-text"></span></button>
-        <button class="skill-button" id="btn-3" onclick="useSkill('العالم الوهمي', 0, 2, 'control', 'btn-3')">العالم الوهمي <span class="cooldown-text"></span></button>
-        <button class="skill-button" id="btn-4" onclick="useSkill('الشق الاسود', 700, 2, 'attack', 'btn-4')">الشق الاسود <span class="cooldown-text"></span></button>
+    <div id="location-screen" class="screen">
+        <h1 id="loc-title"></h1>
+        <div id="loc-content" style="padding: 50px; background: #111; border: 1px solid gold;">
+            </div>
+        <br>
+        <button class="btn-start" onclick="backToMap()">العودة للخريطة</button>
     </div>
-
-    <p id="log" style="margin-top: 20px; color: #00ff00; font-weight: bold; min-height: 40px; padding: 0 10px;"></p>
 
     <script>
-        let pHP = 1000, eHP = 1500, lastEnemyDmg = 0;
-        let cooldowns = { "btn-1": 0, "btn-2": 0, "btn-3": 0, "btn-4": 0 };
-        let isPlayerTurn = true;
+        let player = { name: "", char: "", gold: 100 };
 
-        function toggleSidebar() {
-            const sb = document.getElementById('sidebar');
-            sb.classList.toggle('open');
-            document.querySelector('.toggle-btn').innerText = sb.classList.contains('open') ? "▶" : "◀";
-        }
+        function startGame() {
+            const name = document.getElementById('player-name').value;
+            const pass = document.getElementById('player-pass').value;
+            const char = document.getElementById('char-select').value;
 
-        function useSkill(name, dmg, cd, type, btnId) {
-            if (!isPlayerTurn || cooldowns[btnId] > 0 || eHP <= 0) return;
-
-            if (type === 'attack') {
-                eHP -= dmg;
-                document.getElementById('log').innerText = `ديابلو استخدم ${name} وسبب ${dmg} ضرر!`;
-                finishTurn(btnId, cd);
-            } else if (type === 'defense') {
-                pHP += lastEnemyDmg;
-                if (pHP > 1000) pHP = 1000;
-                document.getElementById('log').innerText = `حاجز الهاوية! ديابلو استعاد ${lastEnemyDmg} HP من الضرر السابق.`;
-                finishTurn(btnId, cd);
-            } else if (type === 'control') {
-                document.getElementById('control-modal').style.display = 'block';
-                window.currentCD = {id: btnId, val: cd};
+            if(name === "" || pass === "") {
+                alert("يرجى ملء كافة البيانات!");
+                return;
             }
+
+            player.name = name;
+            player.char = char;
+
+            document.getElementById('display-name').innerText = name + " (" + char + ")";
+            switchScreen('map-screen');
         }
 
-        function executeControl(type, value, skillName) {
-            document.getElementById('control-modal').style.display = 'none';
-            if (type === 'attack') {
-                eHP -= value;
-                document.getElementById('log').innerText = `تحت تأثير العالم الوهمي، غيوتارو ضرب نفسه بـ ${skillName} وتلقى ${value} ضرر!`;
-            } else if (type === 'heal') {
-                pHP += value;
-                if (pHP > 1000) pHP = 1000;
-                document.getElementById('log').innerText = `أجبرت غيوتارو على استخدام ${skillName} لعلاجك! استعدت ${value} HP.`;
+        function goTo(location) {
+            const title = {
+                'colosseum': 'كولوسيوم القتال (هنا تواجه غيوتارو)',
+                'training': 'ساحة تدريب الفرسان',
+                'tavern': 'حانة الأساطير',
+                'bank': 'البنك الملكي',
+                'guild': 'نقابة المغامرين'
+            };
+
+            document.getElementById('loc-title').innerText = title[location];
+            
+            // إذا اختار الكولوسيوم، يمكننا وضع كود القتال القديم هنا
+            if(location === 'colosseum') {
+                document.getElementById('loc-content').innerHTML = "تم العثور على غيوتارو! هل أنت مستعد للقتال؟ <br><br> <button class='btn-start'>بدء المعركة</button>";
+            } else {
+                document.getElementById('loc-content').innerHTML = "هذا المكان قيد التطوير في القصة...";
             }
-            finishTurn(window.currentCD.id, window.currentCD.val);
+
+            switchScreen('location-screen');
         }
 
-        function finishTurn(btnId, cd) {
-            if (eHP < 0) eHP = 0;
-            cooldowns[btnId] = cd + 1;
-            isPlayerTurn = false;
-            updateUI();
-            updateButtons();
-            if (eHP > 0) setTimeout(enemyAI, 1500);
-            else document.getElementById('log').innerText = "تم سحق غيوتارو تماماً!";
-        }
+        function backToMap() { switchScreen('map-screen'); }
 
-        function enemyAI() {
-            if (eHP <= 0) return;
-            
-            // ذكاء غيوتارو: يختار مهارة عشوائية
-            const moves = [
-                {n: 'منجل الدم', d: 150},
-                {n: 'سم القمر', d: 300}
-            ];
-            const move = moves[Math.floor(Math.random() * moves.length)];
-            
-            lastEnemyDmg = move.d;
-            pHP -= lastEnemyDmg;
-            if (pHP < 0) pHP = 0;
-
-            for (let id in cooldowns) if (cooldowns[id] > 0) cooldowns[id]--;
-            isPlayerTurn = true;
-            document.getElementById('log').innerText = `غيوتارو استخدم ${move.n} وسبب ${lastEnemyDmg} ضرر! دور ديابلو.`;
-            updateUI();
-            updateButtons();
-        }
-
-        function updateUI() {
-            document.getElementById('e-hp').style.width = (eHP / 1500 * 100) + "%";
-            document.getElementById('p-hp').style.width = (pHP / 1000 * 100) + "%";
-            document.getElementById('e-text').innerText = `${eHP} / 1500 HP`;
-            document.getElementById('p-hp-text').innerText = `${pHP} / 1000 HP`;
-        }
-
-        function updateButtons() {
-            document.querySelectorAll('.skill-button').forEach(btn => {
-                let cd = cooldowns[btn.id];
-                btn.disabled = !isPlayerTurn || cd > 0;
-                btn.querySelector('.cooldown-text').innerText = cd > 0 ? `انتظر: ${cd}` : "جاهزة";
-            });
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
     </script>
 </body>
 </html>
-
