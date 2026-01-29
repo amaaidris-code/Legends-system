@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legends System - Final Map</title>
+    <title>Legends System - Secure Map</title>
     <style>
         :root { --gold: #ffd700; --red: #ff4d4d; --bg: #0a0a0a; }
         body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; text-align: center; overflow-x: hidden; }
-        
         .screen { display: none; padding: 20px; animation: fadeIn 0.4s; }
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -17,30 +16,17 @@
         input, select { width: 100%; padding: 12px; margin: 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; }
         .btn-gold { background: var(--gold); color: black; border: none; padding: 12px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 8px; }
 
-        /* الخريطة */
+        /* الخريطة الدائرية (7 حول 1) */
         .map-frame { position: relative; display: inline-block; margin-top: 20px; border: 3px solid #333; line-height: 0; }
         .map-img { width: 100%; max-width: 850px; height: auto; border-radius: 10px; }
-
-        .node { 
-            position: absolute; width: 11%; height: 11%; 
-            border: 3px solid var(--gold); border-radius: 50%; 
-            background: rgba(0, 0, 0, 0.7); cursor: pointer;
-            transform: translate(-50%, -50%); transition: 0.3s;
-            z-index: 10;
-        }
+        .node { position: absolute; width: 11%; height: 11%; border: 3px solid var(--gold); border-radius: 50%; background: rgba(0, 0, 0, 0.7); cursor: pointer; transform: translate(-50%, -50%); transition: 0.3s; z-index: 10; }
         .node:hover { background: rgba(255, 215, 0, 0.4); transform: translate(-50%, -50%) scale(1.1); }
-        
-        /* الدائرة الثامنة في المركز */
         .node-center { top: 50%; left: 50%; border-color: var(--red); box-shadow: 0 0 15px var(--red); }
 
-        /* توزيع 7 دوائر حول المركز بزوايا دقيقة (360/7) */
-        .n1 { top: 20%; left: 50%; }          /* أعلى */
-        .n2 { top: 30%; left: 78%; }          /* أعلى يمين */
-        .n3 { top: 58%; left: 88%; }          /* يمين أسفل قليلاً */
-        .n4 { top: 82%; left: 68%; }          /* أسفل يمين */
-        .n5 { top: 82%; left: 32%; }          /* أسفل يسار */
-        .n6 { top: 58%; left: 12%; }          /* يسار أسفل قليلاً */
-        .n7 { top: 30%; left: 22%; }          /* أعلى يسار */
+        /* توزيع الـ 7 دوائر حول المركز */
+        .n1 { top: 20%; left: 50%; } .n2 { top: 30%; left: 78%; } .n3 { top: 58%; left: 88%; }
+        .n4 { top: 82%; left: 68%; } .n5 { top: 82%; left: 32%; } .n6 { top: 58%; left: 12%; }
+        .n7 { top: 30%; left: 22%; }
     </style>
 </head>
 <body>
@@ -52,7 +38,6 @@
                 <option value="ديابلو">ديابلو</option>
                 <option value="ريمورو">ريمورو</option>
                 <option value="لوفي">لوفي</option>
-                <option value="سوكونا">سوكونا</option>
             </select>
             <input type="password" id="pass-field" placeholder="كلمة السر">
             <button class="btn-gold" onclick="validate()">دخول</button>
@@ -60,58 +45,33 @@
     </div>
 
     <div id="map-screen" class="screen">
-        <h3 style="color: var(--gold);">خريطة العالم: اختر وجهتك</h3>
+        <h3 style="color: var(--gold);">خريطة العالم الجديدة</h3>
         <div class="map-frame">
             <img src="20260129_152721.jpg" class="map-img">
-            
-            <div class="node node-center" onclick="visit('قلعة المركز')"></div>
-            
-            <div class="node n1" onclick="visit('المكان 1')"></div>
-            <div class="node n2" onclick="visit('المكان 2')"></div>
-            <div class="node n3" onclick="visit('المكان 3')"></div>
-            <div class="node n4" onclick="visit('المكان 4')"></div>
-            <div class="node n5" onclick="visit('المكان 5')"></div>
-            <div class="node n6" onclick="visit('المكان 6')"></div>
-            <div class="node n7" onclick="visit('المكان 7')"></div>
+            <div class="node node-center" onclick="visit('المركز الملكي')"></div>
+            <div class="node n1" onclick="visit('الموقع الشمالي')"></div>
+            <div class="node n2" onclick="visit('الموقع الشرقي العلوي')"></div>
+            <div class="node n3" onclick="visit('الموقع الشرقي السفلي')"></div>
+            <div class="node n4" onclick="visit('الموقع الجنوبي الشرقي')"></div>
+            <div class="node n5" onclick="visit('الموقع الجنوبي الغربي')"></div>
+            <div class="node n6" onclick="visit('الموقع الغربي السفلي')"></div>
+            <div class="node n7" onclick="visit('الموقع الغربي العلوي')"></div>
         </div>
     </div>
 
-    <div id="loc-screen" class="screen">
-        <h1 id="loc-name" style="color: var(--gold);"></h1>
-        <p>مرحباً بك في هذا الموقع السري.</p>
-        <button class="btn-gold" style="width: auto; padding: 10px 30px;" onclick="showMap()">عودة</button>
-    </div>
-
     <script>
-        // كلمات السر الخاصة بالشخصيات
-        const SECRETS = {
-            "ديابلو": "123",
-            "ريمورو": "456",
-            "لوفي": "789",
-            "سوكونا": "000"
-        };
+        const SECRETS = { "ديابلو": "123", "ريمورو": "456", "لوفي": "789" };
 
         function validate() {
             const char = document.getElementById('char-list').value;
             const pass = document.getElementById('pass-field').value;
             if(SECRETS[char] === pass) {
-                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById('login-screen').classList.remove('active');
                 document.getElementById('map-screen').classList.add('active');
-            } else {
-                alert("كلمة سر خاطئة!");
-            }
+            } else { alert("كلمة سر خاطئة!"); }
         }
 
-        function visit(name) {
-            document.getElementById('loc-name').innerText = name;
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('loc-screen').classList.add('active');
-        }
-
-        function showMap() {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('map-screen').classList.add('active');
-        }
+        function visit(name) { alert("لقد وصلت إلى: " + name); }
     </script>
 </body>
 </html>
